@@ -1,0 +1,101 @@
+@model UserForm.Models.DBModels.Forms.UserForms
+
+@{
+    ViewBag.Title = "Edit Form";
+    Layout = "_Layout";
+}
+
+<div class="container mt-4">
+    <h3>Edit Form - @Model.FormTemplate.Id</h3>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <input type="checkbox" id="selectAll" onchange="toggleAll(this)">
+            <label for="selectAll">Select All</label>
+        </div>
+        <div>
+            <button class="btn btn-primary me-2" onclick="addOptionQuestion()">Add Option Question</button>
+            <button class="btn btn-primary me-2" onclick="addTextQuestion()">Add Text Question</button>
+            <button class="btn btn-secondary me-2" onclick="enableEdit()">Edit Selected</button>
+            <button class="btn btn-danger" onclick="deleteSelected()">Delete Selected</button>
+        </div>
+    </div>
+
+    <form method="post" asp-action="SaveForm" asp-controller="Forms">
+        <input type="hidden" name="Id" value="@Model.Id" />
+        <div id="questions-container"></div>
+
+        <button type="submit" class="btn btn-success mt-3">Save Form</button>
+    </form>
+</div>
+
+@section Scripts {
+<script>
+    function toggleAll(source) {
+        document.querySelectorAll('.select-question').forEach(cb => cb.checked = source.checked);
+    }
+
+    function createQuestionCard(htmlContent) {
+        const card = document.createElement("div");
+        card.className = "card p-3 mb-2 position-relative";
+        card.innerHTML = `
+            <input type="checkbox" class="form-check-input position-absolute select-question" style="top:10px; left:10px;">
+            ${htmlContent}
+        `;
+        return card;
+    }
+
+    function addOptionQuestion() {
+        const html = `
+            <div>
+                <input type="text" name="QuestionTitles" class="form-control mb-2" placeholder="Option Question Title">
+                <div class="input-group mb-1">
+                    <span class="input-group-text">
+                        <input type="radio" disabled>
+                    </span>
+                    <input type="text" class="form-control" name="Option1" placeholder="Option 1">
+                </div>
+                <div class="input-group mb-1">
+                    <span class="input-group-text">
+                        <input type="radio" disabled>
+                    </span>
+                    <input type="text" class="form-control" name="Option2" placeholder="Option 2">
+                </div>
+                <button class="btn btn-link p-0" type="button" onclick="addMoreOption(this)">+ Add Option</button>
+            </div>`;
+        const card = createQuestionCard(html);
+        document.getElementById("questions-container").appendChild(card);
+    }
+
+    function addTextQuestion() {
+        const html = `
+            <div>
+                <input type="text" name="QuestionTitles" class="form-control mb-2" placeholder="Text Question Title">
+                <input type="text" class="form-control" name="TextAnswer" placeholder="Short answer text" disabled>
+            </div>`;
+        const card = createQuestionCard(html);
+        document.getElementById("questions-container").appendChild(card);
+    }
+
+    function addMoreOption(button) {
+        const div = document.createElement("div");
+        div.className = "input-group mb-1";
+        div.innerHTML = `
+            <span class="input-group-text">
+                <input type="radio" disabled>
+            </span>
+            <input type="text" class="form-control" name="Option" placeholder="Option">`;
+        button.parentElement.insertBefore(div, button);
+    }
+
+    function enableEdit() {
+        document.querySelectorAll('.select-question:checked').forEach(cb => {
+            cb.closest('.card').querySelectorAll('input[type="text"]').forEach(input => input.removeAttribute("disabled"));
+        });
+    }
+
+    function deleteSelected() {
+        document.querySelectorAll('.select-question:checked').forEach(cb => cb.closest('.card').remove());
+    }
+</script>
+}

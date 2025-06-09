@@ -1,0 +1,7 @@
+﻿services:
+  userform:
+    image: userform
+    build:
+      context: .
+      dockerfile: UserForm/Dockerfile
+
