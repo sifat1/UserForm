@@ -6,13 +6,19 @@ namespace UserForm.Models.DBModels.Forms;
 
 public class UserForms
 {
-    [Required]
     [Key]
     public int Id { get; set; }
-    [ForeignKey("userid")]
-    public int UserId { get; set; }
-    
-    public UserDetails User { get; set; } = null!;
+
     [Required]
-    public BaseForm FormTemplate { get; set; } = new BaseForm();
+    [ForeignKey(nameof(Formowner))]
+    public int FormownerId { get; set; }
+    public UserDetails Formowner { get; set; }
+
+    [Required]
+    [ForeignKey(nameof(FormTemplate))]
+    public int FormTemplateId { get; set; }
+    public BaseForm FormTemplate { get; set; }
+
+    // Navigation: a form instance can have many submissions
+    public ICollection<UserSubmittedForm> Submissions { get; set; } = new List<UserSubmittedForm>();
 }

@@ -1,3 +1,4 @@
+using FormGenerator.Models.DBModels.Question;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using UserForm.Models.DBModels.Forms;
@@ -5,33 +6,40 @@ using UserForm.Models.DBModels.Users;
 
 namespace UserForm.Models.DBModels;
 
-public class DbContext : IdentityDbContext<UserDetails>
+public class AppDbContext : IdentityDbContext<UserDetails>
 {
-    public DbContext(DbContextOptions<DbContext> options) : base(options) { }
+    public AppDbContext(DbContextOptions<DbContext> options) : base(options) {}
 
     public DbSet<UserForms> UserForms { get; set; }
     public DbSet<BaseForm> Forms { get; set; }
+    public DbSet<Options> Options { get; set; }
     public DbSet<BaseQuestion> Questions { get; set; }
     public DbSet<QuestionwithOptions> OptionQuestions { get; set; }
     public DbSet<QuestionwithTextOption> TextQuestions { get; set; }
-    public DbSet<UserDetails> Users { get; set; }
+    public DbSet<UserDetails> UserDetails { get; set; }
+    public DbSet<UserSubmittedForm> UserSubmittedForms { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
 
+        // Unique email constraint
         builder.Entity<UserDetails>()
             .HasIndex(u => u.Email)
             .IsUnique();
 
-        // Removed .IsUnique() so multiple forms per user are allowed
+        // Foreign key indices
         builder.Entity<UserForms>()
-            .HasIndex(u => u.UserId);
+            .HasIndex(u => u.FormownerId);
 
-        // Set up inheritance for questions
+        builder.Entity<UserForms>()
+            .HasIndex(u => u.FormTemplateId); // ✅ FIXED: You cannot index a navigation property like Title
+
+        // Polymorphism for BaseQuestion
         builder.Entity<BaseQuestion>()
             .HasDiscriminator<string>("QuestionType")
             .HasValue<QuestionwithOptions>("Options")
             .HasValue<QuestionwithTextOption>("Text");
+        
     }
 }

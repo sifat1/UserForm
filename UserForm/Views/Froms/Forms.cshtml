@@ -1,32 +1,81 @@
+@using FormGenerator.Models.DBModels.Question
 @model UserForm.Models.DBModels.Forms.UserForms
 
 @{
-    ViewBag.Title = "Edit Form";
-    Layout = "_Layout";
+ViewBag.Title = "Edit Form";
+Layout = "_Layout";
 }
 
 <div class="container mt-4">
-    <h3>Edit Form - @Model.FormTemplate.Id</h3>
-
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <div>
-            <input type="checkbox" id="selectAll" onchange="toggleAll(this)">
-            <label for="selectAll">Select All</label>
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">Edit Form - @Model.FormTemplate.Title</h3>
         </div>
-        <div>
-            <button class="btn btn-primary me-2" onclick="addOptionQuestion()">Add Option Question</button>
-            <button class="btn btn-primary me-2" onclick="addTextQuestion()">Add Text Question</button>
-            <button class="btn btn-secondary me-2" onclick="enableEdit()">Edit Selected</button>
-            <button class="btn btn-danger" onclick="deleteSelected()">Delete Selected</button>
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="selectAll" onchange="toggleAll(this)">
+                    <label class="form-check-label" for="selectAll">Select All</label>
+                </div>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-primary me-2" onclick="addOptionQuestion()">
+                        <i class="bi bi-list-check me-1"></i>Add Option Question
+                    </button>
+                    <button type="button" class="btn btn-primary me-2" onclick="addTextQuestion()">
+                        <i class="bi bi-text-paragraph me-1"></i>Add Text Question
+                    </button>
+                    <button type="button" class="btn btn-warning me-2" onclick="enableEdit()">
+                        <i class="bi bi-pencil me-1"></i>Edit Selected
+                    </button>
+                    <button type="button" class="btn btn-danger" onclick="deleteSelected()">
+                        <i class="bi bi-trash me-1"></i>Delete Selected
+                    </button>
+                </div>
+            </div>
+
+            <form method="post" asp-action="SaveForm" asp-controller="Forms">
+                <input type="hidden" name="Id" value="@Model.Id" />
+                <div id="questions-container" class="mb-4">
+                    <!-- Existing questions will be loaded here -->
+                    @foreach (var question in Model.FormTemplate.Questions)
+                    {
+                    <div class="card mb-3 shadow-sm">
+                        <div class="card-body">
+                            <input type="checkbox" class="form-check-input position-absolute select-question" style="top:10px; left:10px;">
+
+                            @if (question is QuestionwithOptions optionQuestion)
+                            {
+                            <h5 class="card-title">@question.Questiontxt</h5>
+                            <div class="options-container">
+                                @foreach (var option in optionQuestion.Options)
+                                {
+                                <div class="input-group mb-2">
+                                                <span class="input-group-text">
+                                                    <input type="radio" disabled>
+                                                </span>
+                                    <input type="text" class="form-control" value="@option.OptionText" disabled>
+                                </div>
+                                }
+                            </div>
+                            }
+                            else
+                            {
+                            <h5 class="card-title">@question.Questiontxt</h5>
+                            <input type="text" class="form-control" placeholder="Short answer text" disabled>
+                            }
+                        </div>
+                    </div>
+                    }
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-save me-1"></i>Save Form
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
-
-    <form method="post" asp-action="SaveForm" asp-controller="Forms">
-        <input type="hidden" name="Id" value="@Model.Id" />
-        <div id="questions-container"></div>
-
-        <button type="submit" class="btn btn-success mt-3">Save Form</button>
-    </form>
 </div>
 
 @section Scripts {
@@ -37,31 +86,42 @@
 
     function createQuestionCard(htmlContent) {
         const card = document.createElement("div");
-        card.className = "card p-3 mb-2 position-relative";
+        card.className = "card mb-3 shadow-sm";
         card.innerHTML = `
-            <input type="checkbox" class="form-check-input position-absolute select-question" style="top:10px; left:10px;">
-            ${htmlContent}
-        `;
+            <div class="card-body">
+                <input type="checkbox" class="form-check-input position-absolute select-question" style="top:10px; left:10px;">
+                ${htmlContent}
+            </div>`;
         return card;
     }
 
     function addOptionQuestion() {
         const html = `
-            <div>
-                <input type="text" name="QuestionTitles" class="form-control mb-2" placeholder="Option Question Title">
-                <div class="input-group mb-1">
-                    <span class="input-group-text">
-                        <input type="radio" disabled>
-                    </span>
-                    <input type="text" class="form-control" name="Option1" placeholder="Option 1">
+            <div class="mb-3">
+                <input type="text" name="QuestionTitles" class="form-control mb-3" placeholder="Question title" required>
+                <div class="options-container">
+                    <div class="input-group mb-2">
+                        <span class="input-group-text">
+                            <input type="radio" name="correctOption" disabled>
+                        </span>
+                        <input type="text" class="form-control" name="Options" placeholder="Option 1" required>
+                        <button class="btn btn-outline-danger" type="button" onclick="removeOption(this)">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                    <div class="input-group mb-2">
+                        <span class="input-group-text">
+                            <input type="radio" name="correctOption" disabled>
+                        </span>
+                        <input type="text" class="form-control" name="Options" placeholder="Option 2" required>
+                        <button class="btn btn-outline-danger" type="button" onclick="removeOption(this)">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
                 </div>
-                <div class="input-group mb-1">
-                    <span class="input-group-text">
-                        <input type="radio" disabled>
-                    </span>
-                    <input type="text" class="form-control" name="Option2" placeholder="Option 2">
-                </div>
-                <button class="btn btn-link p-0" type="button" onclick="addMoreOption(this)">+ Add Option</button>
+                <button class="btn btn-outline-primary btn-sm" type="button" onclick="addMoreOption(this)">
+                    <i class="bi bi-plus-circle me-1"></i>Add Option
+                </button>
             </div>`;
         const card = createQuestionCard(html);
         document.getElementById("questions-container").appendChild(card);
@@ -70,32 +130,57 @@
     function addTextQuestion() {
         const html = `
             <div>
-                <input type="text" name="QuestionTitles" class="form-control mb-2" placeholder="Text Question Title">
-                <input type="text" class="form-control" name="TextAnswer" placeholder="Short answer text" disabled>
+                <input type="text" name="QuestionTitles" class="form-control mb-3" placeholder="Question title" required>
+                <input type="text" class="form-control" placeholder="Short answer text" disabled>
             </div>`;
         const card = createQuestionCard(html);
         document.getElementById("questions-container").appendChild(card);
     }
 
     function addMoreOption(button) {
+        const optionsContainer = button.previousElementSibling;
+        const optionCount = optionsContainer.querySelectorAll('.input-group').length + 1;
+
         const div = document.createElement("div");
-        div.className = "input-group mb-1";
+        div.className = "input-group mb-2";
         div.innerHTML = `
             <span class="input-group-text">
-                <input type="radio" disabled>
+                <input type="radio" name="correctOption" disabled>
             </span>
-            <input type="text" class="form-control" name="Option" placeholder="Option">`;
-        button.parentElement.insertBefore(div, button);
+            <input type="text" class="form-control" name="Options" placeholder="Option ${optionCount}" required>
+            <button class="btn btn-outline-danger" type="button" onclick="removeOption(this)">
+                <i class="bi bi-trash"></i>
+            </button>`;
+
+        optionsContainer.appendChild(div);
+    }
+
+    function removeOption(button) {
+        const optionGroup = button.closest('.input-group');
+        if (optionGroup && document.querySelectorAll('.options-container .input-group').length > 2) {
+            optionGroup.remove();
+        } else {
+            alert("A question must have at least two options");
+        }
     }
 
     function enableEdit() {
         document.querySelectorAll('.select-question:checked').forEach(cb => {
-            cb.closest('.card').querySelectorAll('input[type="text"]').forEach(input => input.removeAttribute("disabled"));
+            const card = cb.closest('.card');
+            card.querySelectorAll('input[type="text"]').forEach(input => {
+                input.removeAttribute("disabled");
+                input.classList.add("bg-light");
+            });
+            card.querySelectorAll('button').forEach(btn => {
+                btn.removeAttribute("disabled");
+            });
         });
     }
 
     function deleteSelected() {
-        document.querySelectorAll('.select-question:checked').forEach(cb => cb.closest('.card').remove());
+        if (confirm("Are you sure you want to delete the selected questions?")) {
+            document.querySelectorAll('.select-question:checked').forEach(cb => cb.closest('.card').remove());
+        }
     }
 </script>
 }

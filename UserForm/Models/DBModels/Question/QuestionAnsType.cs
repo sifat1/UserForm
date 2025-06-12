@@ -1,4 +1,4 @@
-namespace UserForm.Models.DBModels;
+namespace FormGenerator.Models.DBModels.Question;
 
 public enum QuestionAnsType
 {

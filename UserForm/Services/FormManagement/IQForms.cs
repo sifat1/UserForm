@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using UserForm.Models.DBModels.Forms;
 
-namespace UserForm.Services.FormManagement;
+namespace FormGenerator.Services.FormManagement;
 
 public interface IQForms
 {

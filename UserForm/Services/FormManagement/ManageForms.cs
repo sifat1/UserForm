@@ -1,7 +1,10 @@
+using FormGenerator.Models.DBModels.Question;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using UserForm.Models.DBModels;
 using UserForm.Models.DBModels.Forms;
-namespace UserForm.Services.FormManagement;
+
+namespace FormGenerator.Services.FormManagement;
 
 public class ManageForms(DbContext db) : IQForms
 {
@@ -12,7 +15,12 @@ public class ManageForms(DbContext db) : IQForms
         throw new NotImplementedException();
     }
 
-    public IActionResult AddQuestion([FromForm] Object question, [FromForm] UserForms Froms)
+    public IActionResult AddQuestion(object question, UserForms Froms)
+    {
+        throw new NotImplementedException();
+    }
+
+    public IActionResult AddQuestion([FromForm] BaseQuestion question, [FromForm] UserForms Froms)
     {
         Froms.FormTemplate.Questions.Add(question);
         _db.UpdateRange(Froms.FormTemplate.Questions);

@@ -1,7 +1,20 @@
-namespace UserForm.Models.DBModels;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using UserForm.Models.DBModels.Forms;
 
-public class BaseQuestion
+namespace FormGenerator.Models.DBModels.Question;
+
+public abstract class BaseQuestion
 {
-    int Id { get; set; }
-    string Questiontxt { get; set; }
+    [Key]
+    public int Id { get; set; }
+
+    [Required]
+    public string Questiontxt { get; set; }
+
+    [ForeignKey(nameof(UserForm))]
+    public int UserFormId { get; set; }
+    public UserForms UserForm { get; set; }
+
+    public ICollection<UserSubmittedForm> UserSubmittedForms { get; set; }
 }

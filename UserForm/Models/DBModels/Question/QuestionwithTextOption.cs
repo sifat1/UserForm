@@ -1,7 +1,6 @@
-namespace UserForm.Models.DBModels;
+namespace FormGenerator.Models.DBModels.Question;
 
 public class QuestionwithTextOption : BaseQuestion
 {
-    public string Option { get; set; }
-    public string Answer { get; set; }
+    public string TextAnswer { get; set; }
 }
