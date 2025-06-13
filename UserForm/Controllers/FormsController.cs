@@ -10,13 +10,13 @@ namespace UserForm.Controllers;
 
 public class FormsController(AppDbContext context,UserManager<UserDetails> userManager) : Controller
 {
-    [HttpGet("/CreateForm")]
+    [HttpGet]
     public IActionResult CreateForm()
     {
         return View();
     }
 
-    [HttpPost("/CreateForm")]
+    [HttpPost]
     public async Task<ActionResult> CreateForm(CreateFormDto model)
     {
         if (!ModelState.IsValid)
@@ -31,7 +31,7 @@ public class FormsController(AppDbContext context,UserManager<UserDetails> userM
             };
         await context.SaveChangesAsync();
 
-        return RedirectToAction(nameof(Index));
+        return View();
     }
 
     public async Task<ActionResult> UpdateForm(CreateFormDto model)
