@@ -5,8 +5,8 @@ namespace UserForm.Controllers;
 public class HomeController : Controller
 {
     [HttpGet("/")]
-    public void Index()
+    public ViewResult Index()
     {
-        
+        return View();
     }
 }
