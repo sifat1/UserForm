@@ -17,7 +17,7 @@ public class FormsController(AppDbContext context,UserManager<UserDetails> userM
     }
 
     [HttpPost("/Forms")]
-    public async Task<ActionResult> Create(CreateFormDto model)
+    public async Task<ActionResult> CreateForm(CreateFormDto model)
     {
         if (!ModelState.IsValid)
             return Redirect("/");
@@ -34,7 +34,7 @@ public class FormsController(AppDbContext context,UserManager<UserDetails> userM
         return RedirectToAction(nameof(Index));
     }
 
-    public async Task<ActionResult> Update(CreateFormDto model)
+    public async Task<ActionResult> UpdateForm(CreateFormDto model)
     {
         if (!ModelState.IsValid) return Redirect("/");
         var form = new BaseForm { Title = model.Title, Questions = model.Questions };
@@ -43,7 +43,7 @@ public class FormsController(AppDbContext context,UserManager<UserDetails> userM
         return RedirectToAction(nameof(Index));
     }
 
-    public async Task<ActionResult> Delete(CreateFormDto model)
+    public async Task<ActionResult> DeleteForm(CreateFormDto model)
     {
         context.Remove(model);
         await context.SaveChangesAsync();
