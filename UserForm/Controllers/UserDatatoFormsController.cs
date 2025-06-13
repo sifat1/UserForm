@@ -25,7 +25,7 @@ public class UserDatatoFormsController(AppDbContext context) : ControllerBase
         }
         catch (Exception e)
         {
-            return BadRequest(e.Message);
+            return BadRequest();
         }
         
         return Ok(new { message = "Form Submitted" });
