@@ -1,0 +1,67 @@
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Create Form";
+}
+
+<form method="post" asp-action="Create">
+    <div class="mb-3">
+        <label for="FormTitle" class="form-label">Form Title</label>
+        <input type="text" class="form-control" id="FormTitle" name="FormTitle" required />
+    </div>
+
+    <div id="questions-container">
+        <div class="question-block mb-3" data-index="0">
+            <div class="form-check mb-1">
+                <input type="checkbox" class="form-check-input delete-checkbox" />
+                <label class="form-check-label">Select to Delete</label>
+            </div>
+            <label class="form-label">Question</label>
+            <input type="text" name="Questions[0].QuestionText" class="form-control" required />
+        </div>
+    </div>
+
+    <button type="button" class="btn btn-secondary mb-3" id="add-question">
+        <i class="bi bi-plus-circle"></i> Add Question
+    </button>
+
+    <button type="button" class="btn btn-danger mb-3 ms-2" id="delete-selected">
+        <i class="bi bi-trash"></i> Delete Selected
+    </button>
+
+    <br />
+    <button type="submit" class="btn btn-primary mt-2">Save Form</button>
+</form>
+
+@section Scripts {
+    <script>
+        let questionIndex = 1;
+
+        document.getElementById("add-question").addEventListener("click", function () {
+            const container = document.getElementById("questions-container");
+            const newBlock = document.createElement("div");
+            newBlock.className = "question-block mb-3";
+            newBlock.setAttribute("data-index", questionIndex);
+
+            newBlock.innerHTML = `
+                <div class="form-check mb-1">
+                    <input type="checkbox" class="form-check-input delete-checkbox" />
+                    <label class="form-check-label">Select to Delete</label>
+                </div>
+                <label class="form-label">Question</label>
+                <input type="text" name="Questions[${questionIndex}].QuestionText" class="form-control" required />
+            `;
+
+            container.appendChild(newBlock);
+            questionIndex++;
+        });
+
+        document.getElementById("delete-selected").addEventListener("click", function () {
+            const checkboxes = document.querySelectorAll(".delete-checkbox");
+            checkboxes.forEach(cb => {
+                if (cb.checked) {
+                    cb.closest(".question-block").remove();
+                }
+            });
+        });
+    </script>
+}

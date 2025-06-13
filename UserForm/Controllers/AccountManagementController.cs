@@ -1,16 +1,13 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using FormGenerator.DTOS;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using UserForm.DTOS;
 using UserForm.Models.DBModels.Users;
 
 namespace UserForm.Controllers;
-
-[ApiController]
-[Route("api/[controller]")]
 class AccountManagementController(
     UserManager<UserDetails> userManager,
     IConfiguration configuration,
