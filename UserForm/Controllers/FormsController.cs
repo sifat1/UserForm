@@ -16,7 +16,7 @@ public class FormsController(AppDbContext context,UserManager<UserDetails> userM
         return View();
     }
 
-    [HttpPost("/Forms")]
+    [HttpPost]
     public async Task<ActionResult> CreateForm(CreateFormDto model)
     {
         if (!ModelState.IsValid)
