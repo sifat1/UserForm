@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Razor.Compilation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using UserForm.DTOS;
@@ -30,7 +31,7 @@ class AccountManagementController
     }
 
     [HttpGet]
-    public IActionResult Register() => View();
+    public IActionResult Register() => View("Login");
 
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Register(RegisterViewModel model)
@@ -77,7 +78,7 @@ class AccountManagementController
     public IActionResult Login(string? returnUrl = null)
     {
         ViewData["ReturnUrl"] = returnUrl;
-        return View();
+        return View("Login");
     }
 
     [HttpPost, ValidateAntiForgeryToken]
