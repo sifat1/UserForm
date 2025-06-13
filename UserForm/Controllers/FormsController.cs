@@ -11,16 +11,16 @@ namespace UserForm.Controllers;
 public class FormsController(AppDbContext context,UserManager<UserDetails> userManager) : Controller
 {
     [HttpGet]
-    public IActionResult CreateForm()
+    public ViewResult CreateForm()
     {
         return View();
     }
 
     [HttpPost]
-    public async Task<ActionResult> CreateForm(CreateFormDto model)
+    public ViewResult CreateForm(CreateFormDto model)
     {
         if (!ModelState.IsValid)
-            return Redirect("/");
+            return View();
 
         var form = new BaseForm { Title = model.Title, Questions = model.Questions };
         var Form = context.Add(form);
@@ -29,7 +29,7 @@ public class FormsController(AppDbContext context,UserManager<UserDetails> userM
                 FormownerId = int.Parse(userManager.GetUserId(User) ?? string.Empty),
                 FormTemplateId = form.Id,
             };
-        await context.SaveChangesAsync();
+        context.SaveChangesAsync();
 
         return View();
     }
