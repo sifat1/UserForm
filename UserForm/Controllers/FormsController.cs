@@ -10,13 +10,13 @@ namespace UserForm.Controllers;
 
 public class FormsController(AppDbContext context,UserManager<UserDetails> userManager) : Controller
 {
-    [HttpGet]
+    [HttpGet("/CreateForm")]
     public IActionResult CreateForm()
     {
         return View();
     }
 
-    [HttpPost]
+    [HttpPost("/CreateForm")]
     public async Task<ActionResult> CreateForm(CreateFormDto model)
     {
         if (!ModelState.IsValid)
