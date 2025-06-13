@@ -9,7 +9,7 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
         builder.Services.AddControllersWithViews();
-        var rawUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+        var rawUrl = Environment.GetEnvironmentVariable("DBENV");
 
 
         builder.Services.AddDbContext<AppDbContext>(options =>
@@ -38,12 +38,16 @@ public class Program
             options.LoginPath = "/AccountManagement/Login"; 
         });
         var app = builder.Build();
-
-        app.UseRouting();
+        using (var scope = app.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            db.Database.Migrate();
+        }
         app.UseStaticFiles();
+        
+        app.UseRouting();
         app.UseAuthentication();
         app.UseAuthorization();
-        app.MapControllers();
         app.MapControllerRoute(
             name: "default",
             pattern: "{controller=HomeController}/{action=index}/{id?}");
