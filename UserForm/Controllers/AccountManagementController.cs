@@ -3,65 +3,114 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using UserForm.DTOS;
+using UserForm.Models.DBModels;
 using UserForm.Models.DBModels.Users;
+using UserForm.Models.ViewModels;
 
 namespace UserForm.Controllers;
-class AccountManagementController(
-    UserManager<UserDetails> userManager,
-    IConfiguration configuration,
-    RoleManager<IdentityRole> roleManager)
+class AccountManagementController
     : Controller
 {
 
-    [HttpPost("login")]
-    public async Task<IActionResult> Login(LoginDto model)
+    private readonly UserManager<UserDetails> _userManager;
+    private readonly SignInManager<UserDetails> _signInManager;
+    private readonly AppDbContext _db;
+    private readonly UserService _userservice;
+
+    public AccountManagementController(UserManager<UserDetails> userManager,
+    SignInManager<UserDetails> signInManager, UserService userservice, AppDbContext db)
     {
-        var user = await userManager.FindByEmailAsync(model.Email);
-        if (user != null && await userManager.CheckPasswordAsync(user, model.Password))
-        {
-            var claims = new[]
-            {
-                new Claim(ClaimTypes.Name, user.UserName!),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-            };
-
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-            var token = new JwtSecurityToken(
-                issuer: configuration["Jwt:Issuer"],
-                audience: configuration["Jwt:Audience"],
-                claims: claims,
-                expires: DateTime.UtcNow.AddHours(1),
-                signingCredentials: creds
-            );
-
-            return Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
-        }
-
-        return Unauthorized();
+        _userManager = userManager;
+        _signInManager = signInManager;
+        _userservice = userservice;
+        _db = db;
     }
 
-    
-    [HttpPost("register")]
-    public async Task<IActionResult> Register(RegisterDto model)
+    [HttpGet]
+    public IActionResult Register() => View();
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> Register(RegisterViewModel model)
     {
-        var user = new UserDetails { UserName = model.Email, Email = model.Email };
-        var result = await userManager.CreateAsync(user, model.Password);
+        if (!ModelState.IsValid)
+        {
+            ModelState.AddModelError(string.Empty, "Submitted Empty/Invalid form.");
+            return View(model);
+        }
 
-        if (!result.Succeeded)
-            return BadRequest(result.Errors);
+        if (_userservice.IfUserExists(model.Email))
+        {
+            ModelState.AddModelError(string.Empty, "User with this Email already exists.");
+            return View(model);
+        }
 
-        // Ensure role exists
-        if (!await roleManager.RoleExistsAsync(model.Role))
-            await roleManager.CreateAsync(new IdentityRole(model.Role));
+        var user = new UserDetails
+        {
+            Email = model.Email,
+            IsBlocked = false,
+            UserName = model.Email,
+            LastLogin = DateTime.UtcNow
+        };
 
-        // Assign role to user
-        await userManager.AddToRoleAsync(user, model.Role);
+        var result = await _userManager.CreateAsync(user, model.Password);
 
-        return Ok("User registered with role: " + model.Role);
+        if (result.Succeeded)
+        {
+            await _signInManager.SignInAsync(user, isPersistent: false);
+            return RedirectToAction("ShowUsers", "ManageUser");
+        }
+
+        foreach (var error in result.Errors)
+        {
+            ModelState.AddModelError(string.Empty, error.Description);
+        }
+
+        return View(model);
+    }
+
+
+
+    [HttpGet]
+    public IActionResult Login(string? returnUrl = null)
+    {
+        ViewData["ReturnUrl"] = returnUrl;
+        return View();
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl = null)
+    {
+        if(!ModelState.IsValid) return View(model);
+
+        if(!_userservice.IfUserExists(model.Email))
+        {
+            ModelState.AddModelError(string.Empty,"User doesn't exsist / been blocked");
+            return View(model);
+        }
+
+        var result = await _signInManager.PasswordSignInAsync(
+            model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
+
+        if (result.Succeeded)
+        {
+            await _db.Users.Where(u => u.Email == model.Email).ExecuteUpdateAsync(setters => 
+                    setters.SetProperty(u => u.LastLogin, DateTime.UtcNow));
+
+            return Redirect(returnUrl ?? Url.Action("ShowUsers", "ManageUser")!);
+        }
+
+        ModelState.AddModelError(string.Empty, "Invalid login attempt");
+        return View(model);
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> Logout()
+    {
+        await _signInManager.SignOutAsync();
+        return RedirectToAction("Login", "Account");
     }
 
 
