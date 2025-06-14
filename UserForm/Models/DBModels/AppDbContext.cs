@@ -18,6 +18,7 @@ public class AppDbContext : IdentityDbContext<UserDetails>
     public DbSet<QuestionwithTextOption> TextQuestions { get; set; }
     public DbSet<UserDetails> UserDetails { get; set; }
     public DbSet<UserSubmittedForm> UserSubmittedForms { get; set; }
+    
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

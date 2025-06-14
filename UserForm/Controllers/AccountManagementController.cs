@@ -78,7 +78,7 @@ class AccountManagementController
     public IActionResult Login(string? returnUrl = null)
     {
         ViewData["ReturnUrl"] = returnUrl;
-        return View("Login");
+        return View();
     }
 
     [HttpPost, ValidateAntiForgeryToken]

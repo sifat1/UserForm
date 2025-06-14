@@ -1,33 +1,25 @@
+using FormGenerator.Models.DBModels.Question;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using UserForm.Models.DBModels;
-using UserForm.Models.DBModels.Forms;
+using UserForm.Models.ViewModels;
 
 namespace UserForm.Controllers;
 
-
-public class UserDatatoFormsController(AppDbContext context) : ControllerBase
+public class UserDatatoFormsController(AppDbContext context, ILogger<UserDatatoFormsController> logger) : Controller
 {
     [HttpGet]
     public async Task<IActionResult> ShowForm(int formId)
     {
         var form = await context.Forms.FirstOrDefaultAsync(f => f.Id == formId);
-        return form == null ? NotFound(new { message = "Form not found" }):Ok(form);
-    }
-    
-    [HttpPost]
-    public async Task<IActionResult> SubmitForm(UserForms formdata)
-    {
-        try
+
+        if (form == null)
         {
-            context.UserForms.Add(formdata);
-            await context.SaveChangesAsync();
+            logger.LogWarning("Form with ID {FormId} not found.", formId);
+            return NotFound(new { message = "Form not found" });
         }
-        catch (Exception e)
-        {
-            return BadRequest();
-        }
-        
-        return Ok(new { message = "Form Submitted" });
+
+        logger.LogInformation("Retrieved form with ID {FormId}", formId);
+        return Ok(form);
     }
 }

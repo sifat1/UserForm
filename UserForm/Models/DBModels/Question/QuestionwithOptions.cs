@@ -9,5 +9,5 @@ public class QuestionwithOptions : BaseQuestion
     [Required]
     public ICollection<Options> Options { get; set; }
 
-    public int? OptionAnswer { get; set; } 
+    public string? OptionAnswer { get; set; } 
 }
