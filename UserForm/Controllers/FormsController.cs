@@ -26,7 +26,7 @@ public class FormsController(AppDbContext context,UserManager<UserDetails> userM
         var Form = context.Add(form);
         var UserForms = new UserForms
             {
-                FormownerId = int.Parse(userManager.GetUserId(User) ?? string.Empty),
+                FormownerId = userManager.GetUserId(User) ?? string.Empty,
                 FormTemplateId = form.Id,
             };
         context.SaveChangesAsync();

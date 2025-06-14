@@ -12,7 +12,7 @@ public class UserSubmittedForm
 
     [Required]
     [ForeignKey(nameof(Submitter))]
-    public int SubmitterId { get; set; }
+    public string SubmitterId { get; set; }
     public UserDetails Submitter { get; set; }
     
     [ForeignKey(nameof(Submittedoption))]

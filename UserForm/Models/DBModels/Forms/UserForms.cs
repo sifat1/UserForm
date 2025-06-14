@@ -11,7 +11,7 @@ public class UserForms
 
     [Required]
     [ForeignKey(nameof(Formowner))]
-    public int FormownerId { get; set; }
+    public string FormownerId { get; set; }
     public UserDetails Formowner { get; set; }
 
     [Required]

@@ -8,7 +8,7 @@ namespace UserForm.Models.DBModels;
 
 public class AppDbContext : IdentityDbContext<UserDetails>
 {
-    public AppDbContext(DbContextOptions<DbContext> options) : base(options) {}
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) {}
 
     public DbSet<UserForms> UserForms { get; set; }
     public DbSet<BaseForm> Forms { get; set; }
@@ -33,13 +33,7 @@ public class AppDbContext : IdentityDbContext<UserDetails>
             .HasIndex(u => u.FormownerId);
 
         builder.Entity<UserForms>()
-            .HasIndex(u => u.FormTemplateId); // ✅ FIXED: You cannot index a navigation property like Title
-
-        // Polymorphism for BaseQuestion
-        builder.Entity<BaseQuestion>()
-            .HasDiscriminator<string>("QuestionType")
-            .HasValue<QuestionwithOptions>("Options")
-            .HasValue<QuestionwithTextOption>("Text");
+            .HasIndex(u => u.FormTemplateId); 
         
     }
 }

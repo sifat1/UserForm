@@ -15,8 +15,28 @@
                 <input type="checkbox" class="form-check-input delete-checkbox" />
                 <label class="form-check-label">Select to Delete</label>
             </div>
+
             <label class="form-label">Question</label>
             <input type="text" name="Questions[0].QuestionText" class="form-control" required />
+
+            <label class="form-label mt-2">Question Type</label>
+            <select name="Questions[0].QuestionType" class="form-select question-type" data-index="0" required>
+                <option value="Text">Without Options (Text)</option>
+                <option value="Options">With Options</option>
+            </select>
+
+            <div class="options-container mt-2" data-index="0" style="display:none;">
+                <label>Options (Select the correct one)</label>
+                <div class="option-list">
+                    <div class="input-group mb-1">
+                        <div class="input-group-text">
+                            <input type="radio" name="Questions[0].CorrectOptionIndex" value="0" required />
+                        </div>
+                        <input type="text" name="Questions[0].Options[0]" class="form-control" placeholder="Option 1" required />
+                    </div>
+                </div>
+                <button type="button" class="btn btn-sm btn-secondary add-option" data-index="0">Add Option</button>
+            </div>
         </div>
     </div>
 
@@ -36,25 +56,49 @@
     <script>
         let questionIndex = 1;
 
+        function createQuestionBlock(index) {
+            return `
+                <div class="question-block mb-3" data-index="${index}">
+                    <div class="form-check mb-1">
+                        <input type="checkbox" class="form-check-input delete-checkbox" />
+                        <label class="form-check-label">Select to Delete</label>
+                    </div>
+
+                    <label class="form-label">Question</label>
+                    <input type="text" name="Questions[${index}].QuestionText" class="form-control" required />
+
+                    <label class="form-label mt-2">Question Type</label>
+                    <select name="Questions[${index}].QuestionType" class="form-select question-type" data-index="${index}" required>
+                        <option value="Text">Without Options (Text)</option>
+                        <option value="Options">With Options</option>
+                    </select>
+
+                    <div class="options-container mt-2" data-index="${index}" style="display:none;">
+                        <label>Options (Select the correct one)</label>
+                        <div class="option-list">
+                            <div class="input-group mb-1">
+                                <div class="input-group-text">
+                                    <input type="radio" name="Questions[${index}].CorrectOptionIndex" value="0" required />
+                                </div>
+                                <input type="text" name="Questions[${index}].Options[0]" class="form-control" placeholder="Option 1" required />
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-secondary add-option" data-index="${index}">Add Option</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Add new question
         document.getElementById("add-question").addEventListener("click", function () {
             const container = document.getElementById("questions-container");
             const newBlock = document.createElement("div");
-            newBlock.className = "question-block mb-3";
-            newBlock.setAttribute("data-index", questionIndex);
-
-            newBlock.innerHTML = `
-                <div class="form-check mb-1">
-                    <input type="checkbox" class="form-check-input delete-checkbox" />
-                    <label class="form-check-label">Select to Delete</label>
-                </div>
-                <label class="form-label">Question</label>
-                <input type="text" name="Questions[${questionIndex}].QuestionText" class="form-control" required />
-            `;
-
-            container.appendChild(newBlock);
+            newBlock.innerHTML = createQuestionBlock(questionIndex);
+            container.appendChild(newBlock.firstElementChild);
             questionIndex++;
         });
 
+        // Delete selected questions
         document.getElementById("delete-selected").addEventListener("click", function () {
             const checkboxes = document.querySelectorAll(".delete-checkbox");
             checkboxes.forEach(cb => {
@@ -62,6 +106,84 @@
                     cb.closest(".question-block").remove();
                 }
             });
+            updateAllNames();
+        });
+
+        // Show/hide options container based on question type
+        document.getElementById("questions-container").addEventListener("change", function (e) {
+            if (e.target.classList.contains("question-type")) {
+                const index = e.target.getAttribute("data-index");
+                const container = document.querySelector(`.options-container[data-index='${index}']`);
+                if (e.target.value === "Options") {
+                    container.style.display = "block";
+                    container.querySelectorAll("input[type='text']").forEach(input => input.required = true);
+                    container.querySelectorAll("input[type='radio']").forEach(radio => radio.required = true);
+                } else {
+                    container.style.display = "none";
+                    container.querySelectorAll("input[type='text']").forEach(input => input.required = false);
+                    container.querySelectorAll("input[type='radio']").forEach(radio => radio.required = false);
+                }
+            }
+        });
+
+        // Add new option input + radio for correct answer
+        document.getElementById("questions-container").addEventListener("click", function (e) {
+            if (e.target.classList.contains("add-option")) {
+                const index = e.target.getAttribute("data-index");
+                const optionList = e.target.previousElementSibling;
+                const optionCount = optionList.children.length;
+
+                const newOptionDiv = document.createElement("div");
+                newOptionDiv.className = "input-group mb-1";
+                newOptionDiv.innerHTML = `
+                    <div class="input-group-text">
+                        <input type="radio" name="Questions[${index}].CorrectOptionIndex" value="${optionCount}" required />
+                    </div>
+                    <input type="text" name="Questions[${index}].Options[${optionCount}]" class="form-control" placeholder="Option ${optionCount + 1}" required />
+                `;
+
+                optionList.appendChild(newOptionDiv);
+            }
+        });
+
+        // After deletion, update all names and radio button groups properly
+        function updateAllNames() {
+            const questionBlocks = document.querySelectorAll("#questions-container .question-block");
+            questionBlocks.forEach((block, newIndex) => {
+                block.setAttribute("data-index", newIndex);
+
+                const questionInput = block.querySelector("input[name^='Questions'][name$='QuestionText']");
+                questionInput.name = `Questions[${newIndex}].QuestionText`;
+
+                const typeSelect = block.querySelector("select.question-type");
+                typeSelect.name = `Questions[${newIndex}].QuestionType`;
+                typeSelect.setAttribute("data-index", newIndex);
+
+                const optionsContainer = block.querySelector(".options-container");
+                optionsContainer.setAttribute("data-index", newIndex);
+
+                const optionDivs = optionsContainer.querySelectorAll(".input-group");
+                optionDivs.forEach((optDiv, optIndex) => {
+                    const radio = optDiv.querySelector("input[type='radio']");
+                    const textInput = optDiv.querySelector("input[type='text']");
+
+                    radio.name = `Questions[${newIndex}].CorrectOptionIndex`;
+                    radio.value = optIndex;
+
+                    textInput.name = `Questions[${newIndex}].Options[${optIndex}]`;
+                    textInput.placeholder = `Option ${optIndex + 1}`;
+                });
+
+                const addOptionBtn = optionsContainer.querySelector(".add-option");
+                addOptionBtn.setAttribute("data-index", newIndex);
+            });
+
+            questionIndex = questionBlocks.length;
+        }
+
+        // Initialize first question options container visibility
+        document.querySelectorAll("select.question-type").forEach(select => {
+            select.dispatchEvent(new Event('change'));
         });
     </script>
 }
