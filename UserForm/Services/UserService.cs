@@ -1,5 +1,7 @@
 using UserForm.Models.DBModels;
 
+namespace UserForm.Services;
+
 public class UserService
 {
     private AppDbContext _db;

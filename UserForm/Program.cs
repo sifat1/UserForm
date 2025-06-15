@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using UserForm.Models.DBModels;
 using UserForm.Models.DBModels.Users;
+using UserForm.Services;
 
 namespace UserForm;
 public class Program
@@ -37,6 +38,9 @@ public class Program
         {
             options.LoginPath = "/AccountManagement/Login"; 
         });
+        
+        builder.Services.AddScoped<UserService>();
+        
         var app = builder.Build();
         
         using (var scope = app.Services.CreateScope())
