@@ -1,4 +1,5 @@
 using FormGenerator.Models.DBModels.Question;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using UserForm.DTOS;
@@ -11,6 +12,7 @@ namespace UserForm.Controllers;
 
 public class FormsController(AppDbContext context,UserManager<UserDetails> userManager, ILogger<FormsController> logger) : Controller
 {
+    [Authorize]
     [HttpGet]
     public ViewResult CreateForm()
     {
@@ -34,6 +36,7 @@ public class FormsController(AppDbContext context,UserManager<UserDetails> userM
         };
 
         context.Forms.Add(baseForm);
+        await context.SaveChangesAsync();
         var userform = new UserForms
         {
             FormTemplateId = baseForm.Id,

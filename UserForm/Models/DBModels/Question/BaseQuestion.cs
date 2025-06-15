@@ -12,9 +12,5 @@ public abstract class BaseQuestion
     [Required]
     public string Questiontxt { get; set; }
 
-    [ForeignKey(nameof(UserForm))]
-    public int UserFormId { get; set; }
-    public UserForms UserForm { get; set; }
-
     public ICollection<UserSubmittedForm> UserSubmittedForms { get; set; }
 }
