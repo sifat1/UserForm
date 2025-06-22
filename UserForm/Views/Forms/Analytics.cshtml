@@ -1,0 +1,27 @@
+@model FormAnalyticsViewModel
+
+<h2>Analytics for: @Model.FormTitle</h2>
+<p><strong>Topic:</strong> @Model.FormTopic</p>
+
+@foreach (var q in Model.Questions)
+{
+    <div class="mb-4">
+        <h5>@q.QuestionText (@q.QuestionType)</h5>
+        @if (q.QuestionType == "Number")
+        {
+            <p><strong>Average Answer:</strong> @q.Average</p>
+        }
+        else if (q.QuestionType == "MultipleChoice")
+        {
+            <table class="table">
+                <thead><tr><th>Option</th><th>Count</th></tr></thead>
+                <tbody>
+                @foreach (var stat in q.OptionCounts)
+                {
+                    <tr><td>@stat.Option</td><td>@stat.Count</td></tr>
+                }
+                </tbody>
+            </table>
+        }
+    </div>
+}

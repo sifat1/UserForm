@@ -8,12 +8,13 @@ public class Program
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
+        builder.Services.AddScoped<UserService>();
         builder.Services.AddControllersWithViews();
         var rawUrl = Environment.GetEnvironmentVariable("DBENV");
 
 
         builder.Services.AddDbContext<AppDbContext>(options =>
-            options.UseNpgsql(rawUrl, npgsqlOptions =>
+            options.UseNpgsql("Host=localhost;Database=userform;Username=postgres;Password=strong_password;Port=5432", npgsqlOptions =>
             {
                 npgsqlOptions.EnableRetryOnFailure(
                     maxRetryCount: 5,
@@ -50,7 +51,7 @@ public class Program
         app.UseAuthorization();
         app.MapControllerRoute(
             name: "default",
-            pattern: "{controller=HomeController}/{action=index}/{id?}");
+            pattern: "{controller=Home}/{action=index}/{id?}");
 
         app.Run();
     }

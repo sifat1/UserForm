@@ -1,28 +1,21 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Razor.Compilation;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using UserForm.DTOS;
 using UserForm.Models.DBModels;
 using UserForm.Models.DBModels.Users;
 using UserForm.Models.ViewModels;
 
 namespace UserForm.Controllers;
-class AccountManagementController
-    : Controller
+public class AccountController : Controller
 {
-
     private readonly UserManager<UserDetails> _userManager;
     private readonly SignInManager<UserDetails> _signInManager;
     private readonly AppDbContext _db;
     private readonly UserService _userservice;
 
-    public AccountManagementController(UserManager<UserDetails> userManager,
-    SignInManager<UserDetails> signInManager, UserService userservice, AppDbContext db)
+    public AccountController(UserManager<UserDetails> userManager,
+    SignInManager<UserDetails> signInManager, UserService userservice, AppDbContext db,
+    ILogger<AccountController> logger)
     {
         _userManager = userManager;
         _signInManager = signInManager;
@@ -31,7 +24,7 @@ class AccountManagementController
     }
 
     [HttpGet]
-    public IActionResult Register() => View("Login");
+    public IActionResult Register() => View();
 
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Register(RegisterViewModel model)
@@ -72,13 +65,11 @@ class AccountManagementController
         return View(model);
     }
 
-
-
     [HttpGet]
     public IActionResult Login(string? returnUrl = null)
     {
         ViewData["ReturnUrl"] = returnUrl;
-        return View("Login");
+        return View();
     }
 
     [HttpPost, ValidateAntiForgeryToken]
@@ -113,6 +104,4 @@ class AccountManagementController
         await _signInManager.SignOutAsync();
         return RedirectToAction("Login", "Account");
     }
-
-
 }

@@ -1,4 +1,4 @@
-using FormGenerator.Models.DBModels.Question;
+
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using UserForm.Models.DBModels.Forms;
@@ -8,38 +8,27 @@ namespace UserForm.Models.DBModels;
 
 public class AppDbContext : IdentityDbContext<UserDetails>
 {
-    public AppDbContext(DbContextOptions<DbContext> options) : base(options) {}
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
-    public DbSet<UserForms> UserForms { get; set; }
-    public DbSet<BaseForm> Forms { get; set; }
-    public DbSet<Options> Options { get; set; }
-    public DbSet<BaseQuestion> Questions { get; set; }
-    public DbSet<QuestionwithOptions> OptionQuestions { get; set; }
-    public DbSet<QuestionwithTextOption> TextQuestions { get; set; }
-    public DbSet<UserDetails> UserDetails { get; set; }
-    public DbSet<UserSubmittedForm> UserSubmittedForms { get; set; }
+    public DbSet<FormEntity> Forms { get; set; }
+    public DbSet<QuestionEntity> Questions { get; set; }
+    public DbSet<OptionEntity> Options { get; set; }
+    public DbSet<FormResponse> FormResponses { get; set; }
 
-    protected override void OnModelCreating(ModelBuilder builder)
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        base.OnModelCreating(builder);
+        base.OnModelCreating(modelBuilder);
 
-        // Unique email constraint
-        builder.Entity<UserDetails>()
-            .HasIndex(u => u.Email)
-            .IsUnique();
+        modelBuilder.Entity<FormEntity>()
+            .HasMany(f => f.Questions)
+            .WithOne(q => q.Form)
+            .HasForeignKey(q => q.FormEntityId)
+            .OnDelete(DeleteBehavior.Cascade);
 
-        // Foreign key indices
-        builder.Entity<UserForms>()
-            .HasIndex(u => u.FormownerId);
-
-        builder.Entity<UserForms>()
-            .HasIndex(u => u.FormTemplateId); // ✅ FIXED: You cannot index a navigation property like Title
-
-        // Polymorphism for BaseQuestion
-        builder.Entity<BaseQuestion>()
-            .HasDiscriminator<string>("QuestionType")
-            .HasValue<QuestionwithOptions>("Options")
-            .HasValue<QuestionwithTextOption>("Text");
-        
+        modelBuilder.Entity<QuestionEntity>()
+            .HasMany(q => q.Options)
+            .WithOne(o => o.Question)
+            .HasForeignKey(o => o.QuestionEntityId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

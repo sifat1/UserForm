@@ -1,4 +1,3 @@
-@model UserForm.Models.DBModels.Forms.UserForms
 
 @{
     ViewBag.Title = "Edit Form";
@@ -11,7 +10,7 @@
         <p class="lead">Easily create, edit, and manage user forms with a simple interface.</p>
         <hr class="my-4">
         <p>Get started by creating a new form or editing an existing one.</p>
-        <a class="btn btn-primary btn-lg" href="@Url.Action("CreateForm", "Forms")" role="button">Create New Form</a>
+        <a class="btn btn-primary btn-lg" href="@Url.Action("Create", "Forms")" role="button">Create New Form</a>
         <a class="btn btn-secondary btn-lg" href="@Url.Action("Index", "Home")" role="button">View Forms</a>
     </div>
 </div>

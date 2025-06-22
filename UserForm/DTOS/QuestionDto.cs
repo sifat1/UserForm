@@ -1,0 +1,8 @@
+namespace UserForm.DTOS;
+
+public class QuestionDto
+{
+    public string QuestionText { get; set; }
+    public string QuestionType { get; set; } // Text, Number, MultipleChoice
+    public List<string>? Options { get; set; }
+}
