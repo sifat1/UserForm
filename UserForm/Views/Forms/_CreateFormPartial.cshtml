@@ -1,0 +1,46 @@
+@model UserForm.DTOS.CreateFormDto
+
+<form method="post" asp-action="@(ViewData["Title"]?.ToString() == "Edit Form" ? "Edit": ViewData["Title"]?.ToString() == "Create Form from Temp"? "CreateFromTemp": "Create")" asp-controller="Forms">
+    <div class="mb-3">
+        <label for="FormTitle" class="form-label">Form Title</label>
+        <input type="text" class="form-control" id="FormTitle" name="FormTitle" value="@Model?.FormTitle" required />
+    </div>
+
+    <div class="mb-3">
+        <label for="FormTopic" class="form-label">Form Topic</label>
+        <select id="FormTopic" name="FormTopic" class="form-select" required>
+            <option value="">-- Select Topic --</option>
+            <option value="Science" @(Model?.FormTopic == "Science" ? "selected" : "")>Science</option>
+            <option value="Arts" @(Model?.FormTopic == "Arts" ? "selected" : "")>Arts</option>
+            <option value="Math" @(Model?.FormTopic == "Math" ? "selected" : "")>Math</option>
+            <option value="History" @(Model?.FormTopic == "History" ? "selected" : "")>History</option>
+            <option value="Technology" @(Model?.FormTopic == "Technology" ? "selected" : "")>Technology</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Tags</label>
+        <div class="border p-2" id="tag-container" style="min-height: 40px;">
+            <input type="text" id="tag-input" class="border-0" style="outline: none;" placeholder="Type tag and press Enter" />
+        </div>
+        <input type="hidden" name="Tags" id="Tags" value="@Model?.Tags" />
+    </div>
+
+    <div class="form-check mb-4">
+    <input type="checkbox" asp-for="IsPublic" class="form-check-input" />
+    <label class="form-check-label" asp-for="IsPublic">Make this form public (others can use it as a template)</label>
+    </div>
+
+    <div id="questions-container"></div>
+
+    <button type="button" class="btn btn-secondary mb-3" id="add-question">
+        <i class="bi bi-plus-circle"></i> Add Question
+    </button>
+
+    <button type="button" class="btn btn-danger mb-3 ms-2" id="delete-selected">
+        <i class="bi bi-trash"></i> Delete Selected
+    </button>
+
+    <br />
+    <button type="submit" class="btn btn-primary mt-2">Save Form</button>
+</form>

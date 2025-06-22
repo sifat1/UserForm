@@ -1,0 +1,45 @@
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Register";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h2 class="mb-4 text-center">Create an Account</h2>
+
+        <form asp-action="Register" asp-controller="Account" method="post" novalidate>
+            @Html.AntiForgeryToken()
+
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <div class="mb-3">
+                <label asp-for="Name" class="form-label">Full Name</label>
+                <input asp-for="Name" class="form-control @(ViewData.ModelState["Name"]?.Errors.Count > 0 ? "is-invalid" : "")" placeholder="Enter your full name" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label">Email Address</label>
+                <input asp-for="Email" class="form-control @(ViewData.ModelState["Email"]?.Errors.Count > 0 ? "is-invalid" : "")" placeholder="Enter your email" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Password" class="form-label">Password</label>
+                <input asp-for="Password" type="password" class="form-control @(ViewData.ModelState["Password"]?.Errors.Count > 0 ? "is-invalid" : "")" placeholder="Create a password" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="ConfirmPassword" class="form-label">Confirm Password</label>
+                <input asp-for="ConfirmPassword" type="password" class="form-control @(ViewData.ModelState["ConfirmPassword"]?.Errors.Count > 0 ? "is-invalid" : "")" placeholder="Re-enter your password" />
+                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Register</button>
+
+            <div class="mt-3 text-center">
+                <p>Already have an account? <a asp-action="Login" asp-controller="Account">Sign In</a></p>
+            </div>
+        </form>
+    </div>
+</div>

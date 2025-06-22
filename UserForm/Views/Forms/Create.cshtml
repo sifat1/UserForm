@@ -1,13 +1,12 @@
 @model UserForm.DTOS.CreateFormDto
-
 @{
     Layout = "_Layout";
-    ViewData["Title"] = "Edit Form";
+    ViewData["Title"] = "Create Form";
 }
 
-<h2>Edit Form</h2>
-
+<h2>Create Form</h2>
 @Html.Partial("_CreateFormPartial", Model)
+
 
 @section Scripts {
     <script>
@@ -16,7 +15,7 @@
 
         function createQuestionBlock(index) {
             return `
-            <div class="question-block mb-4 p-3 border" data-index="${index}">
+            <div class="question-block mb-4 p-3 border rounded" data-index="${index}">
                 <div class="form-check mb-2">
                     <input type="checkbox" class="form-check-input delete-checkbox" />
                     <label class="form-check-label">Select to Delete</label>
@@ -39,12 +38,14 @@
 
         function addQuestion() {
             const container = document.getElementById("questions-container");
+            if (!container) return;
             container.insertAdjacentHTML("beforeend", createQuestionBlock(questionIndex));
             questionIndex++;
         }
 
         function addOptionField(questionIdx) {
             const optionsDiv = document.getElementById(`option-list-${questionIdx}`);
+            if (!optionsDiv) return;
             const optionCount = optionsDiv.querySelectorAll("input[type='text']").length;
             optionsDiv.insertAdjacentHTML("beforeend", `
                 <div class="input-group mb-2 option-item">
@@ -59,6 +60,7 @@
 
         function deleteSelectedOptions(questionIdx) {
             const optionsDiv = document.getElementById(`option-list-${questionIdx}`);
+            if (!optionsDiv) return;
             optionsDiv.querySelectorAll(".option-delete-checkbox:checked").forEach(cb => cb.closest(".option-item").remove());
         }
 
@@ -66,6 +68,8 @@
             const tagContainer = document.getElementById("tag-container");
             const tagInput = document.getElementById("tag-input");
             const hiddenInput = document.getElementById("Tags");
+
+            if (!tagContainer || !tagInput || !hiddenInput) return;
 
             tagContainer.innerHTML = '';
             tags.forEach((tag, index) => {
@@ -83,30 +87,43 @@
             updateTagUI();
         }
 
-        window.onload = function () {
-            document.getElementById("tag-input").addEventListener("keydown", function (e) {
-                if (e.key === "Enter" || e.key === ",") {
-                    e.preventDefault();
-                    const value = e.target.value.trim().replace(",", "");
-                    if (value && !tags.includes(value)) {
-                        tags.push(value);
-                        e.target.value = '';
-                        updateTagUI();
+        document.addEventListener("DOMContentLoaded", function () {
+            const tagInput = document.getElementById("tag-input");
+            const addBtn = document.getElementById("add-question");
+            const deleteBtn = document.getElementById("delete-selected");
+
+            if (tagInput) {
+                tagInput.addEventListener("keydown", function (e) {
+                    if (e.key === "Enter" || e.key === ",") {
+                        e.preventDefault();
+                        const value = e.target.value.trim().replace(",", "");
+                        if (value && !tags.includes(value)) {
+                            tags.push(value);
+                            e.target.value = '';
+                            updateTagUI();
+                        }
                     }
-                }
-            });
+                });
+            }
 
-            document.getElementById("add-question").addEventListener("click", addQuestion);
+            if (addBtn) {
+                addBtn.addEventListener("click", addQuestion);
+            }
 
-            document.getElementById("delete-selected").addEventListener("click", function () {
-                document.querySelectorAll(".delete-checkbox:checked").forEach(cb => cb.closest(".question-block").remove());
-            });
+            if (deleteBtn) {
+                deleteBtn.addEventListener("click", function () {
+                    document.querySelectorAll(".delete-checkbox:checked").forEach(cb =>
+                        cb.closest(".question-block").remove()
+                    );
+                });
+            }
 
             document.addEventListener("change", function (e) {
                 if (e.target.classList.contains("question-type")) {
                     const index = e.target.getAttribute("data-index");
                     const type = e.target.value;
                     const container = document.getElementById(`options-${index}`);
+                    if (!container) return;
                     container.innerHTML = "";
 
                     if (type === "Text") {
@@ -125,29 +142,7 @@
                 }
             });
 
-            // Populate existing questions and tags from the model
-            const modelQuestions = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Questions));
-            modelQuestions.forEach((q, i) => {
-                const container = document.getElementById("questions-container");
-                container.insertAdjacentHTML("beforeend", createQuestionBlock(questionIndex));
-                const block = container.lastElementChild;
-                block.querySelector(`input[name="Questions[${questionIndex}].QuestionText"]`).value = q.QuestionText;
-                block.querySelector(`select[name="Questions[${questionIndex}].QuestionType"]`).value = q.QuestionType;
-                const event = new Event("change", { bubbles: true });
-                block.querySelector(`select[name="Questions[${questionIndex}].QuestionType"]`).dispatchEvent(event);
-                if (q.QuestionType === "MultipleChoice" && q.Options) {
-                    const optionList = document.getElementById(`option-list-${questionIndex}`);
-                    q.Options.forEach((opt, j) => {
-                        addOptionField(questionIndex);
-                        const input = optionList.querySelector(`input[name="Questions[${questionIndex}].Options[${j}]"]`);
-                        if (input) input.value = opt;
-                    });
-                }
-                questionIndex++;
-            });
-
-            tags = "@Model.Tags".split(',').map(t => t.trim()).filter(t => t.length > 0);
-            updateTagUI();
-        };
+            addQuestion(); // Add the first question on load
+        });
     </script>
 }
