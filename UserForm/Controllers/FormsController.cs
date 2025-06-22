@@ -167,6 +167,44 @@ public class FormsController : Controller
         return View(model);
     }
 
+    [HttpPost]
+    public async Task<IActionResult> CreateFromTemplate(CreateFormDto dto)
+    {
+        if (!ModelState.IsValid)
+            {
+                foreach (var state in ModelState)
+                {
+                    foreach (var error in state.Value.Errors)
+                    {
+                        Console.WriteLine($"[Model Error] {state.Key}: {error.ErrorMessage}");
+                    }
+                }
+                return View(dto);
+            }
+
+
+        var formEntity = new FormEntity
+        {
+            FormTitle = dto.FormTitle,
+            FormTopic = dto.FormTopic,
+            Tags = dto.Tags,
+            IsPublic = dto.IsPublic,
+            Questions = dto.Questions.Select(q => new QuestionEntity
+            {
+                QuestionText = q.QuestionText,
+                QuestionType = q.QuestionType,
+                Options = q.QuestionType == "MultipleChoice" 
+                    ? q.Options.Select(opt => new OptionEntity { OptionText = opt }).ToList() 
+                    : new List<OptionEntity>()
+            }).ToList()
+        };
+
+        _context.Forms.Add(formEntity);
+        await _context.SaveChangesAsync();
+
+        return RedirectToAction("Edit", new { id = formEntity.Id });
+    }
+
 
     // GET: Show analytics for a form
     [HttpGet]
