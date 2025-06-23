@@ -1,0 +1,87 @@
+@model UserForm.ViewModels.FormManage.PaginatedFormListViewModel
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Browse Forms";
+}
+
+<h2>Browse Forms</h2>
+
+<form method="get" asp-controller="FormManage" asp-action="List" class="row g-3 mb-4">
+    <div class="col-md-4">
+        <select name="topic" class="form-select" onchange="this.form.submit()">
+            <option value="">-- Filter by Topic --</option>
+            @foreach (var topic in Model.AvailableTopics)
+            {
+                <option value="@topic" selected="@(topic == Model.SelectedTopic)">
+                    @topic
+                </option>
+            }
+        </select>
+    </div>
+
+    <div class="col-md-4">
+        <select name="tag" class="form-select" onchange="this.form.submit()">
+            <option value="">-- Filter by Tag --</option>
+            @foreach (var tag in Model.AvailableTags)
+            {
+                <option value="@tag" selected="@(tag == Model.SelectedTag)">
+                    @tag
+                </option>
+            }
+        </select>
+    </div>
+</form>
+
+<div class="row row-cols-1 row-cols-md-3 g-4">
+    @foreach (var form in Model.Forms)
+    {
+        <div class="col">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title">@form.FormTitle</h5>
+                    <p><strong>Topic:</strong> @form.FormTopic</p>
+
+                    @if (form.IsPublic)
+                    {
+                        <a class="btn btn-sm btn-outline-primary"
+                           href="@Url.Action("CreateFromTemplate", "Forms", new { id = form.Id })">
+                            Use as Template
+                        </a>
+                    }
+
+                    <a class="btn btn-sm btn-outline-success"
+                       href="@Url.Action("Submit", "UserDatatoForms", new { id = form.Id })">
+                        Fill Form
+                    </a>
+
+                    @if (form.OwnerUserId == Model.CurrentUserId)
+                    {
+                        <a class="btn btn-sm btn-outline-secondary"
+                           href="@Url.Action("Edit", "Forms", new { id = form.Id })">
+                            Edit
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Pagination -->
+@if (Model.TotalPages > 1)
+{
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            @for (int i = 1; i <= Model.TotalPages; i++)
+            {
+                <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                    <a class="page-link"
+                       href="@Url.Action("List", "FormManage", new { page = i, topic = Model.SelectedTopic, tag = Model.SelectedTag })">
+                        @i
+                    </a>
+                </li>
+            }
+        </ul>
+    </nav>
+}
