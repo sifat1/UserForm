@@ -1,0 +1,37 @@
+@model UserForm.ViewModels.Analytics.FormAnalyticsViewModel
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Form Analytics";
+}
+
+<h2>Analytics for: @Model.FormTitle</h2>
+<p><strong>Topic:</strong> @Model.FormTopic</p>
+<p><strong>Total Responses:</strong> @Model.TotalResponses</p>
+
+@foreach (var q in Model.Questions)
+{
+    <div class="mb-4">
+        <h4>@q.QuestionText (@q.QuestionType)</h4>
+
+        @if (q.QuestionType == "Number")
+        {
+            <p>Average value: @(q.AverageNumberAnswer?.ToString("F2") ?? "N/A")</p>
+        }
+        else if (q.QuestionType == "MultipleChoice")
+        {
+            <ul>
+                @foreach (var kvp in q.OptionFrequency)
+                {
+                    var percentage = Model.TotalResponses > 0 ? (kvp.Value * 100.0 / Model.TotalResponses) : 0;
+                    <li>@kvp.Key: @kvp.Value (@percentage.ToString("F1")%)</li>
+                }
+            </ul>
+        }
+        else if (q.QuestionType == "Text")
+        {
+            <p>Text answers collected: @q.OptionFrequency.Values.Sum()</p>
+            <!-- Extend if you want to display text answer summaries -->
+        }
+    </div>
+}

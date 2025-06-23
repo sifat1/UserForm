@@ -4,7 +4,7 @@ using UserForm.Models.DBModels;
 using UserForm.DTOS;
 using UserForm.Models.DBModels.Forms;
 using UserForm.Models.DBModels.Question;
-using UserForm.Models.ViewModels;
+using UserForm.ViewModels.Analytics;
 
 public class FormsController : Controller
 {
@@ -204,9 +204,10 @@ public class FormsController : Controller
 
         return RedirectToAction("Edit", new { id = formEntity.Id });
     }
+    
+    
 
 
-    // GET: Show analytics for a form
     [HttpGet]
     public async Task<IActionResult> Analytics(int id)
     {
@@ -217,55 +218,63 @@ public class FormsController : Controller
                 .ThenInclude(r => r.Answers)
             .FirstOrDefaultAsync(f => f.Id == id);
 
-        if (form == null) return NotFound();
+        if (form == null)
+            return NotFound();
 
-        var analytics = new FormAnalyticsDto
+        var vm = new FormAnalyticsViewModel
         {
             FormId = form.Id,
-            FormTitle = form.FormTitle
+            FormTitle = form.FormTitle,
+            FormTopic = form.FormTopic,
+            TotalResponses = form.Responses.Count
         };
 
-        foreach (var q in form.Questions)
+        foreach (var question in form.Questions)
         {
-            var qAnalytics = new QuestionAnalyticsDto
+            var analytics = new QuestionAnalyticsModel
             {
-                QuestionText = q.QuestionText,
-                QuestionType = q.QuestionType,
+                QuestionId = question.Id,
+                QuestionText = question.QuestionText,
+                QuestionType = question.QuestionType
             };
 
-            if (q.QuestionType == "Number")
-            {
-                var numberAnswers = form.Responses
-                    .SelectMany(r => r.Answers)
-                    .Where(a => a.QuestionId == q.Id && double.TryParse(a.AnswerText, out _))
-                    .Select(a => double.Parse(a.AnswerText));
+            // Filter all answers for this question
+            var answers = form.Responses.SelectMany(r => r.Answers)
+                .Where(a => a.QuestionId == question.Id)
+                .ToList();
 
-                if (numberAnswers.Any())
-                    qAnalytics.AverageNumberAnswer = numberAnswers.Average();
+            if (question.QuestionType == "Number")
+            {
+                // Calculate average for numeric answers
+                var numericValues = answers
+                    .Where(a => double.TryParse(a.AnswerText, out _))
+                    .Select(a => double.Parse(a.AnswerText))
+                    .ToList();
+
+                analytics.AverageNumberAnswer = numericValues.Any()
+                    ? numericValues.Average()
+                    : (double?)null;
             }
-            else if (q.QuestionType == "MultipleChoice")
+            else if (question.QuestionType == "MultipleChoice")
             {
-                var optionCounts = new Dictionary<string, int>();
-
-                foreach (var option in q.Options)
-                    optionCounts[option.OptionText] = 0;
-
-                var answers = form.Responses
-                    .SelectMany(r => r.Answers)
-                    .Where(a => a.QuestionId == q.Id);
+                // Count frequency of each option selected
+                var freq = new Dictionary<string, int>();
+                foreach (var opt in question.Options.Select(o => o.OptionText))
+                    freq[opt] = 0;
 
                 foreach (var ans in answers)
                 {
-                    if (optionCounts.ContainsKey(ans.AnswerText))
-                        optionCounts[ans.AnswerText]++;
+                    if (ans.AnswerText != null && freq.ContainsKey(ans.AnswerText))
+                        freq[ans.AnswerText]++;
                 }
 
-                qAnalytics.OptionFrequencies = optionCounts;
+                analytics.OptionFrequency = freq;
             }
+            // For Text questions, you could extend analytics here...
 
-            analytics.Questions.Add(qAnalytics);
+            vm.Questions.Add(analytics);
         }
 
-        return View(analytics);
+        return View(vm);
     }
 }
