@@ -1,4 +1,4 @@
-namespace UserForm.Models.ViewModels;
+namespace UserForm.ViewModels.usersubmitformdata;
 
 public class QuestionViewModel
 {

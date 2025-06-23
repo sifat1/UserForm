@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using UserForm.Models.DBModels;
 using UserForm.Models.DBModels.Forms;
 using UserForm.Models.DBModels.Question;
-using UserForm.Models.ViewModels;
+using UserForm.ViewModels.usersubmitformdata;
 
 namespace UserForm.Controllers;
 
@@ -28,7 +28,7 @@ public class UserDatatoFormsController : Controller
         if (form == null)
             return NotFound();
 
-        var viewModel = new SubmitFormViewModel
+        var model = new SubmitFormViewModel
         {
             FormId = form.Id,
             FormTitle = form.FormTitle,
@@ -39,43 +39,50 @@ public class UserDatatoFormsController : Controller
                 QuestionText = q.QuestionText,
                 QuestionType = q.QuestionType,
                 Options = q.Options?.Select(o => o.OptionText).ToList()
-            }).ToList()
-        };
-
-        return View(viewModel);
-    }
-
-    // POST: Forms/Submit
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Submit(SubmitFormViewModel model)
-    {
-        if (!ModelState.IsValid)
-            return BadRequest();
-
-        var form = await _context.Forms
-            .Include(f => f.Questions)
-            .FirstOrDefaultAsync(f => f.Id == model.FormId);
-
-        if (form == null)
-            return NotFound();
-
-        var response = new FormResponse
-        {
-            FormId = form.Id,
-            SubmittedAt = DateTime.UtcNow,
-            Answers = model.Answers.Select(a => new AnswerEntity
+            }).ToList(),
+            Answers = form.Questions.Select(q => new AnswerInputModel
             {
-                QuestionId = a.QuestionId,
-                AnswerText = a.TextAnswer ?? a.NumberAnswer?.ToString() ?? a.SelectedOption
-            }).ToList()
+                QuestionId = q.Id
+            }).ToList() // Important!
         };
 
-        _context.FormResponses.Add(response);
-        await _context.SaveChangesAsync();
-
-        return RedirectToAction("ThankYou");
+        return View(model);
     }
+
+
+[HttpPost]
+[ValidateAntiForgeryToken]
+public async Task<IActionResult> Submit(SubmitFormViewModel model)
+{
+    if (!ModelState.IsValid)
+    {
+        return BadRequest(ModelState); // Return detailed model errors
+    }
+
+    var form = await _context.Forms
+        .Include(f => f.Questions)
+        .FirstOrDefaultAsync(f => f.Id == model.FormId);
+
+    if (form == null)
+        return NotFound();
+
+    var response = new FormResponse
+    {
+        FormId = form.Id,
+        SubmittedAt = DateTime.UtcNow,
+        Answers = model.Answers.Select(a => new AnswerEntity
+        {
+            QuestionId = a.QuestionId,
+            AnswerText = a.TextAnswer ?? a.SelectedOption ?? a.NumberAnswer?.ToString()
+        }).ToList()
+    };
+
+    _context.FormResponses.Add(response);
+    await _context.SaveChangesAsync();
+
+    return RedirectToAction("ThankYou");
+}
+
 
     public IActionResult ThankYou()
     {
