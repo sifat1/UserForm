@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace UserForm.Models.ViewModels;
+namespace UserForm.ViewModels.Account;
 
 public class RegisterViewModel
 {

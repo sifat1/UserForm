@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using UserForm.Models.DBModels;
 using UserForm.Models.DBModels.Users;
 using UserForm.Models.ViewModels;
+using UserForm.ViewModels.Account;
 
 namespace UserForm.Controllers;
 public class AccountController : Controller

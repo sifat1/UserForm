@@ -1,7 +1,13 @@
+@model UserForm.ViewModels.Account.LoginViewModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
 @{
     Layout = "_Layout";
     ViewData["Title"] = "Login";
 }
+
+<h2 class="mb-4">@ViewData["Title"]</h2>
+
 <div class="row">
     <div class="col-md-6">
         <form asp-action="Login" asp-controller="Account" method="post" novalidate>
@@ -44,7 +50,4 @@
 </div>
 </div>
 
-@section Scripts {
-    @await Html.PartialAsync("_ValidationScriptsPartial")
-}
 
