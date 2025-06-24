@@ -8,30 +8,29 @@
 <h2>Browse Forms</h2>
 
 <form method="get" asp-controller="FormManage" asp-action="List" class="row g-3 mb-4">
+    <!-- 🔍 Search Box --> 
+    <div class="col-md-4">
+        <input type="text" name="search" class="form-control"
+               placeholder="Search by title..." value="@Model.SearchQuery" />
+    </div>
+
+    <!-- Topic Filter Dropdown -->
     <div class="col-md-4">
         <select name="topic" class="form-select" onchange="this.form.submit()">
-            <option value="">-- Filter by Topic --</option>
+            <option value=""> -- Filter by Topic -- </option>
             @foreach (var topic in Model.AvailableTopics)
             {
-                <option value="@topic" selected="@(topic == Model.SelectedTopic)">
-                    @topic
-                </option>
+                <option value="@topic" selected="@(topic == Model.SelectedTopic)"> @topic </option>
             }
         </select>
     </div>
 
-    <div class="col-md-4">
-        <select name="tag" class="form-select" onchange="this.form.submit()">
-            <option value="">-- Filter by Tag --</option>
-            @foreach (var tag in Model.AvailableTags)
-            {
-                <option value="@tag" selected="@(tag == Model.SelectedTag)">
-                    @tag
-                </option>
-            }
-        </select>
+    <!-- Submit Button -->
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-primary w-100">Apply</button>
     </div>
 </form>
+
 
 <div class="row row-cols-1 row-cols-md-3 g-4">
     @foreach (var form in Model.Forms)
