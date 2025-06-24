@@ -1,4 +1,4 @@
-# UserForm
+# Light Form
 
 A simple C# application for creating and managing user forms (like google forms).
 
