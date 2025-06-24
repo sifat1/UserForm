@@ -8,13 +8,10 @@
 <h2>Browse Forms</h2>
 
 <form method="get" asp-controller="FormManage" asp-action="List" class="row g-3 mb-4">
-    <!-- 🔍 Search Box --> 
     <div class="col-md-4">
         <input type="text" name="search" class="form-control"
                placeholder="Search by title..." value="@Model.SearchQuery" />
     </div>
-
-    <!-- Topic Filter Dropdown -->
     <div class="col-md-4">
         <select name="topic" class="form-select" onchange="this.form.submit()">
             <option value=""> -- Filter by Topic -- </option>
@@ -24,13 +21,28 @@
             }
         </select>
     </div>
-
-    <!-- Submit Button -->
     <div class="col-md-2">
         <button type="submit" class="btn btn-primary w-100">Apply</button>
     </div>
 </form>
 
+@if (Model.AvailableTags.Any())
+{
+    <div class="mb-4">
+        <span class="fw-bold me-2">Filter by Tag:</span>
+        <a class="badge bg-secondary text-decoration-none me-1 @(string.IsNullOrEmpty(Model.SelectedTag) ? "bg-primary" : "")"
+           href="@Url.Action("List", new { topic = Model.SelectedTopic, search = Model.SearchQuery })">
+            All
+        </a>
+        @foreach (var tag in Model.AvailableTags)
+        {
+            <a class="badge text-bg-light text-decoration-none me-1 @(tag == Model.SelectedTag ? "bg-primary text-white" : "")"
+               href="@Url.Action("List", new { tag = tag, topic = Model.SelectedTopic, search = Model.SearchQuery })">
+                @tag
+            </a>
+        }
+    </div>
+}
 
 <div class="row row-cols-1 row-cols-md-3 g-4">
     @foreach (var form in Model.Forms)
@@ -76,7 +88,13 @@
             {
                 <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
                     <a class="page-link"
-                       href="@Url.Action("List", "FormManage", new { page = i, topic = Model.SelectedTopic, tag = Model.SelectedTag })">
+                       href="@Url.Action("List", "FormManage", new
+                       {
+                           page = i,
+                           topic = Model.SelectedTopic,
+                           tag = Model.SelectedTag,
+                           search = Model.SearchQuery
+                       })">
                         @i
                     </a>
                 </li>
