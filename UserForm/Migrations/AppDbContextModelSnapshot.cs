@@ -223,6 +223,12 @@ namespace UserForm.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
                     b.Property<string>("FormTitle")
                         .IsRequired()
                         .HasColumnType("text");
@@ -239,6 +245,8 @@ namespace UserForm.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CreatedById");
 
                     b.ToTable("Forms");
                 });
@@ -257,9 +265,15 @@ namespace UserForm.Migrations
                     b.Property<DateTime>("SubmittedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("SubmittedById")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
 
                     b.HasIndex("FormId");
+
+                    b.HasIndex("SubmittedById");
 
                     b.ToTable("FormResponses");
                 });
@@ -495,6 +509,15 @@ namespace UserForm.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("UserForm.Models.DBModels.Forms.FormEntity", b =>
+                {
+                    b.HasOne("UserForm.Models.DBModels.Users.UserDetails", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById");
+
+                    b.Navigation("CreatedBy");
+                });
+
             modelBuilder.Entity("UserForm.Models.DBModels.Forms.FormResponse", b =>
                 {
                     b.HasOne("UserForm.Models.DBModels.Forms.FormEntity", "Form")
@@ -503,7 +526,15 @@ namespace UserForm.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("UserForm.Models.DBModels.Users.UserDetails", "SubmittedBy")
+                        .WithMany()
+                        .HasForeignKey("SubmittedById")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Form");
+
+                    b.Navigation("SubmittedBy");
                 });
 
             modelBuilder.Entity("UserForm.Models.DBModels.Forms.LikeEntity", b =>

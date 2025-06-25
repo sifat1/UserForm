@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using UserForm.Models.DBModels;
@@ -16,7 +17,7 @@ public class UserDatatoFormsController : Controller
     {
         _context = context;
     }
-    // GET: Forms/Submit/5
+
     [HttpGet]
     public async Task<IActionResult> Submit(int id)
     {
@@ -69,6 +70,7 @@ public async Task<IActionResult> Submit(SubmitFormViewModel model)
     var response = new FormResponse
     {
         FormId = form.Id,
+        SubmittedById = User.FindFirstValue(ClaimTypes.NameIdentifier), 
         SubmittedAt = DateTime.UtcNow,
         Answers = model.Answers.Select(a => new AnswerEntity
         {
@@ -80,7 +82,7 @@ public async Task<IActionResult> Submit(SubmitFormViewModel model)
     _context.FormResponses.Add(response);
     await _context.SaveChangesAsync();
 
-    return RedirectToAction("ThankYou");
+    return RedirectToAction("index", "Home"); 
 }
 
 

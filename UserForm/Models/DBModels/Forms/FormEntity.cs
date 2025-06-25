@@ -1,4 +1,6 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using UserForm.Models.DBModels.Users;
 
 namespace UserForm.Models.DBModels.Forms;
 
@@ -8,16 +10,15 @@ public class FormEntity
 
     [Required]
     public string FormTitle { get; set; }
-
+    public string? Description {get;set;}
     public string FormTopic { get; set; }
-
-    public string Tags { get; set; } // Comma-separated tags
+    public string Tags { get; set; } 
 
     public bool IsPublic { get; set; }
-
-    // Navigation property: form has many questions
+    
+    [ForeignKey(nameof(CreatedBy))]
+    public string? CreatedById { get; set; }
+    public UserDetails CreatedBy { get; set; }
     public ICollection<QuestionEntity> Questions { get; set; } = new List<QuestionEntity>();
-
-    // Navigation property: form has many responses (submissions)
     public ICollection<FormResponse> Responses { get; set; } = new List<FormResponse>();
 }

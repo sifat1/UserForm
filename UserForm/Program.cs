@@ -51,7 +51,7 @@ public class Program
         app.UseAuthorization();
         app.MapControllerRoute(
             name: "default",
-            pattern: "{controller=Home}/{action=index}/{id?}");
+            pattern: "{controller=FormManage}/{action=List}/{id?}");
 
         app.Run();
     }

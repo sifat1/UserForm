@@ -7,6 +7,7 @@ using UserForm.Models.DBModels.Forms;
 using UserForm.Models.DBModels.Question;
 using UserForm.ViewModels.Analytics;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 public class FormsController : Controller
 {
@@ -36,6 +37,7 @@ public class FormsController : Controller
 
     // POST: Save new form
     [HttpPost]
+    [Authorize]
     public async Task<IActionResult> Create(CreateFormDto dto)
     {
         if (!ModelState.IsValid)
@@ -54,9 +56,11 @@ public class FormsController : Controller
         var formEntity = new FormEntity
         {
             FormTitle = dto.FormTitle,
+            Description = dto.FormDescription,
             FormTopic = dto.FormTopic,
             Tags = dto.Tags,
             IsPublic = dto.IsPublic,
+            CreatedById = User.FindFirstValue(ClaimTypes.NameIdentifier),
             Questions = dto.Questions.Select(q => new QuestionEntity
             {
                 QuestionText = q.QuestionText,
@@ -72,22 +76,24 @@ public class FormsController : Controller
 
         return RedirectToAction("Edit", new { id = formEntity.Id });
     }
-
-    // GET: Edit form page
+    
     [HttpGet]
+    [Authorize]
     public async Task<IActionResult> Edit(int id)
     {
         var form = await _context.Forms
             .Include(f => f.Questions)
                 .ThenInclude(q => q.Options)
             .FirstOrDefaultAsync(f => f.Id == id);
-
+        
         if (form == null) return NotFound();
-
+        if (form.CreatedById != User.FindFirstValue(ClaimTypes.NameIdentifier)) return Unauthorized();
+        
         var model = new CreateFormDto
         {
             Id = form.Id,
             FormTitle = form.FormTitle,
+            FormDescription = form.Description,
             FormTopic = form.FormTopic,
             Tags = form.Tags,
             IsPublic = form.IsPublic,
@@ -101,9 +107,9 @@ public class FormsController : Controller
 
         return View(model);
     }
-
-    // POST: Save edited form
+    
     [HttpPost]
+    [Authorize]
     public async Task<IActionResult> Edit(CreateFormDto dto)
     {
         if (!ModelState.IsValid)
@@ -118,6 +124,7 @@ public class FormsController : Controller
 
         // Update form properties
         form.FormTitle = dto.FormTitle;
+        form.Description = dto.FormDescription;
         form.FormTopic = dto.FormTopic;
         form.Tags = dto.Tags;
         form.IsPublic = dto.IsPublic;
@@ -156,6 +163,7 @@ public class FormsController : Controller
         {
             Id = form.Id,
             FormTitle = form.FormTitle,
+            FormDescription = form.Description,
             FormTopic = form.FormTopic,
             Tags = form.Tags,
             IsPublic = form.IsPublic,
@@ -188,9 +196,11 @@ public class FormsController : Controller
         var formEntity = new FormEntity
         {
             FormTitle = dto.FormTitle,
+            Description = dto.FormDescription,
             FormTopic = dto.FormTopic,
             Tags = dto.Tags,
             IsPublic = dto.IsPublic,
+            CreatedById = User.FindFirstValue(ClaimTypes.NameIdentifier),
             Questions = dto.Questions.Select(q => new QuestionEntity
             {
                 QuestionText = q.QuestionText,
@@ -211,6 +221,7 @@ public class FormsController : Controller
 
 
     [HttpGet]
+    [Authorize]
     public async Task<IActionResult> Analytics(int id)
     {
         var form = await _context.Forms
@@ -218,7 +229,7 @@ public class FormsController : Controller
                 .ThenInclude(q => q.Options)
             .Include(f => f.Responses)
                 .ThenInclude(r => r.Answers)
-            .FirstOrDefaultAsync(f => f.Id == id);
+            .FirstOrDefaultAsync(f => f.Id == id && f.CreatedById == User.FindFirstValue(ClaimTypes.NameIdentifier));
 
         if (form == null)
             return NotFound();
@@ -278,26 +289,5 @@ public class FormsController : Controller
         }
 
         return View(vm);
-    }
-
-
-
-    
-    [HttpPost]
-    public async Task<IActionResult> Comment(int formId, string content)
-    {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (!string.IsNullOrWhiteSpace(content))
-        {
-            var comment = new CommentEntity
-            {
-                FormId = formId,
-                UserId = userId,
-                Content = content
-            };
-            _context.Comments.Add(comment);
-            await _context.SaveChangesAsync();
-        }
-        return RedirectToAction("List"); // or form details page
     }
 }

@@ -1,8 +1,10 @@
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using UserForm.Models.DBModels;
 using UserForm.Models.DBModels.Forms;
+using UserForm.ViewModels.Analytics;
 using UserForm.ViewModels.FormManage;
 
 namespace UserForm.Controllers;
@@ -11,13 +13,14 @@ public class FormManageController(AppDbContext context) : Controller
 {
     AppDbContext _context = context;
 
-    [HttpGet]
+    [HttpGet("/")]
     public async Task<IActionResult> List(string? topic, string? tag, string? searchQuery, int page = 1, int pageSize = 6)
     {
+        var topTemplates = await GetTopTemplatesAsync();
+        ViewData["TopTemplates"] = topTemplates;
+
         var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var query = _context.Forms.AsQueryable();
-
-        // Filtering
         if (!string.IsNullOrEmpty(topic))
             query = query.Where(f => f.FormTopic == topic);
 
@@ -80,6 +83,7 @@ public class FormManageController(AppDbContext context) : Controller
     }
 
     [HttpPost]
+    [Authorize]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Like(int formId, string? returnUrl)
     {
@@ -96,5 +100,49 @@ public class FormManageController(AppDbContext context) : Controller
 
         return !string.IsNullOrEmpty(returnUrl) ? Redirect(returnUrl) : RedirectToAction("List");
     }
+    
+    
+    [HttpPost]
+    public async Task<IActionResult> Comment(int formId, string content)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!string.IsNullOrWhiteSpace(content))
+        {
+            var comment = new CommentEntity
+            {
+                FormId = formId,
+                UserId = userId,
+                Content = content
+            };
+            _context.Comments.Add(comment);
+            await _context.SaveChangesAsync();
+        }
+        return RedirectToAction("List"); // or form details page
+    }
+    
+    public async Task<List<PopularTemplateViewModel>> GetTopTemplatesAsync()
+    {
+        return await _context.FormResponses
+            .GroupBy(r => r.FormId)
+            .Select(g => new
+            {
+                FormId = g.Key,
+                Count = g.Count()
+            })
+            .OrderByDescending(g => g.Count)
+            .Take(5)
+            .Join(_context.Forms,
+                r => r.FormId,
+                f => f.Id,
+                (r, f) => new PopularTemplateViewModel
+                {
+                    FormId = f.Id,
+                    FormTitle = f.FormTitle,
+                    OwnerEmail = f.CreatedBy.Email,
+                    SubmissionCount = r.Count
+                })
+            .ToListAsync();
+    }
+
 
 }

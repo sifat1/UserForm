@@ -1,0 +1,52 @@
+@model UserForm.ViewModels.FormManage.UserFormListViewModel
+
+
+@{
+    ViewData["Title"] = "My Forms";
+    Layout = "_Layout";
+}
+
+<h2>My Forms</h2>
+
+<form asp-action="DeleteSelected" asp-controller="Account" method="post">
+    @Html.AntiForgeryToken()
+
+    <div class="mb-3">
+        <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete selected forms?')">
+            Delete Selected
+        </button>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-2 g-4">
+        @foreach (var form in Model.Forms)
+        {
+            <div class="col">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div class="form-check float-end">
+                            <input type="checkbox" class="form-check-input" name="selectedFormIds" value="@form.Id" />
+                        </div>
+                        <h5 class="card-title">@form.FormTitle</h5>
+                        <p><strong>Topic:</strong> @form.FormTopic</p>
+                        <p><strong>Visibility:</strong> @(form.IsPublic ? "Public" : "Private")</p>
+                        <a href="@Url.Action("Details", "MyDashboard", new { id = form.Id })" class="btn btn-sm btn-outline-info">View Details</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</form>
+
+@if (Model.TotalPages > 1)
+{
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            @for (int i = 1; i <= Model.TotalPages; i++)
+            {
+                <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                    <a class="page-link" href="@Url.Action("MyForms", new { page = i })">@i</a>
+                </li>
+            }
+        </ul>
+    </nav>
+}
