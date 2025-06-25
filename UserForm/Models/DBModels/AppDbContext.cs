@@ -11,10 +11,14 @@ public class AppDbContext : IdentityDbContext<UserDetails>
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
     public DbSet<FormEntity> Forms { get; set; }
+    public DbSet<LikeEntity> Likes { get; set; }
+    public DbSet<CommentEntity> Comments { get; set; }
+
     public DbSet<QuestionEntity> Questions { get; set; }
     public DbSet<OptionEntity> Options { get; set; }
     public DbSet<FormResponse> FormResponses { get; set; }
-    public DbSet<AnswerEntity> Answers { get; set; } // ✅ Added for completeness
+    public DbSet<AnswerEntity> Answers { get; set; } 
+    
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -24,14 +28,14 @@ public class AppDbContext : IdentityDbContext<UserDetails>
         modelBuilder.Entity<FormEntity>()
             .HasMany(f => f.Questions)
             .WithOne(q => q.Form)
-            .HasForeignKey(q => q.FormId) // ✅ Fixed name from FormEntityId to FormId
+            .HasForeignKey(q => q.FormId) 
             .OnDelete(DeleteBehavior.Cascade);
 
         // Question → Options
         modelBuilder.Entity<QuestionEntity>()
             .HasMany(q => q.Options)
             .WithOne(o => o.Question)
-            .HasForeignKey(o => o.QuestionId) // ✅ Fixed name from QuestionEntityId to QuestionId
+            .HasForeignKey(o => o.QuestionId) 
             .OnDelete(DeleteBehavior.Cascade);
 
         // Form → Responses
@@ -54,5 +58,10 @@ public class AppDbContext : IdentityDbContext<UserDetails>
             .WithOne(a => a.Question)
             .HasForeignKey(a => a.QuestionId)
             .OnDelete(DeleteBehavior.Cascade);
+        
+        modelBuilder.Entity<LikeEntity>()
+            .HasIndex(l => new { l.UserId, l.FormId })
+            .IsUnique(); // Prevent duplicate likes by same user
+
     }
 }

@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using UserForm.Models.DBModels;
@@ -5,6 +6,7 @@ using UserForm.DTOS;
 using UserForm.Models.DBModels.Forms;
 using UserForm.Models.DBModels.Question;
 using UserForm.ViewModels.Analytics;
+using System.Security.Claims;
 
 public class FormsController : Controller
 {
@@ -276,5 +278,26 @@ public class FormsController : Controller
         }
 
         return View(vm);
+    }
+
+
+
+    
+    [HttpPost]
+    public async Task<IActionResult> Comment(int formId, string content)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!string.IsNullOrWhiteSpace(content))
+        {
+            var comment = new CommentEntity
+            {
+                FormId = formId,
+                UserId = userId,
+                Content = content
+            };
+            _context.Comments.Add(comment);
+            await _context.SaveChangesAsync();
+        }
+        return RedirectToAction("List"); // or form details page
     }
 }

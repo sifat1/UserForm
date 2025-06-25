@@ -7,4 +7,5 @@ public class FormCardViewModel
     public string FormTopic { get; set; }
     public bool IsPublic { get; set; }
     public string? OwnerUserId { get; set; }
+    public int LikeCount { get; set; } = 0;
 }
