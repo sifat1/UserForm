@@ -1,5 +1,3 @@
-using UserForm.Models.ViewModels;
-
 namespace UserForm.ViewModels.Analytics;
 
     public class FormAnalyticsViewModel

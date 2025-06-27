@@ -1,21 +1,13 @@
 @model UserForm.ViewModels.FormManage.PaginatedFormListViewModel
 @using System.Web
 @using UserForm.ViewModels.Analytics
+@using System.Security.Claims
 
 @{
     Layout = "_Layout";
     ViewData["Title"] = "Browse Forms";
+    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 }
-
-<div class="container mb-15">
-    <div class="jumbotron text-center">
-        <h1 class="display-4">Welcome to the User Form App!</h1>
-        <p class="lead">Easily create, edit, and manage user forms with a simple interface.</p>
-        <hr class="my-4">
-        <p>Get started by creating a new form or editing an existing one.</p>
-        <a class="btn btn-primary btn-lg" href="@Url.Action("Create", "Forms")" role="button">Create New Form</a>
-    </div>
-</div>
 
 @await Html.PartialAsync("_TopTemplatesPartial", (List<PopularTemplateViewModel>)ViewData["TopTemplates"])
 
@@ -85,14 +77,6 @@
                        href="@Url.Action("Submit", "UserDatatoForms", new { id = form.Id })">
                         Fill Form
                     </a>
-
-                    @if (form.OwnerUserId == Model.CurrentUserId)
-                    {
-                        <a class="btn btn-sm btn-outline-secondary"
-                           href="@Url.Action("Edit", "Forms", new { id = form.Id })">
-                            Edit
-                        </a>
-                    }
                 </div>
             </div>
         </div>

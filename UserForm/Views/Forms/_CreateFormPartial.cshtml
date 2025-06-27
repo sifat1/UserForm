@@ -31,8 +31,15 @@
     </div>
 
     <div class="form-check mb-4">
-    <input type="checkbox" asp-for="IsPublic" class="form-check-input" />
-    <label class="form-check-label" asp-for="IsPublic">Make this form public (others can use it as a template)</label>
+        <input type="checkbox" 
+       name="IsPublic" 
+       id="IsPublic" 
+       value="true" 
+       class="form-check-input" 
+       @(Model?.IsPublic == true ? "checked" : "") />
+        <label asp-for="IsPublic" class="form-check-label">
+            Make this form public (others can use it as a template)
+        </label>
     </div>
 
     <div id="questions-container"></div>

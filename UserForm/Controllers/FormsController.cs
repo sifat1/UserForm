@@ -52,6 +52,9 @@ public class FormsController : Controller
                 return View(dto);
             }
 
+        Console.WriteLine("IsPublic value posted: " + dto.IsPublic);
+
+
 
         var formEntity = new FormEntity
         {
