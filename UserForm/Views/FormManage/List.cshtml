@@ -57,6 +57,7 @@
                     <h5 class="card-title">@form.FormTitle</h5>
                     <p><strong>Topic:</strong> @form.FormTopic</p>
 
+                    <div class="d-flex align-items-center gap-2 mb-2">
                     <form method="post" action="@Url.Action("Like", "FormManage")">
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="formId" value="@form.Id" />
@@ -77,6 +78,8 @@
                        href="@Url.Action("Submit", "UserDatatoForms", new { id = form.Id })">
                         Fill Form
                     </a>
+                    </div>
+                    
                 </div>
             </div>
         </div>
