@@ -46,7 +46,7 @@ public class AccountController : Controller
             Email = model.Email,
             IsBlocked = false,
             UserName = model.Email,
-            LastLogin = DateTime.UtcNow
+            LastLogin = DateTime.UtcNow,
         };
 
         var result = await _userManager.CreateAsync(user, model.Password);

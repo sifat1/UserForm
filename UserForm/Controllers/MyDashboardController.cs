@@ -6,9 +6,8 @@ using UserForm.ViewModels.FormManage;
 
 namespace UserForm.Controllers;
 
-public class MyDashboardController(AppDbContext context) : Controller
+public class MyDashboardController(AppDbContext _context) : Controller
 {
-    private AppDbContext _context = context;
     
     [HttpGet]
     public async Task<IActionResult> MyForms(int page = 1, int pageSize = 6)
@@ -47,16 +46,23 @@ public class MyDashboardController(AppDbContext context) : Controller
     public async Task<IActionResult> DeleteSelected(List<int> selectedFormIds)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        foreach (var id in selectedFormIds)
+            Console.WriteLine($" - {id}");
 
         var formsToDelete = await _context.Forms
             .Where(f => selectedFormIds.Contains(f.Id) && f.CreatedById == userId)
             .ToListAsync();
 
-        _context.Forms.RemoveRange(formsToDelete);
-        await _context.SaveChangesAsync();
+        if (formsToDelete.Any())
+        {
+            _context.Forms.RemoveRange(formsToDelete);
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Form deleted successfully!";
+        }
 
         return RedirectToAction("MyForms");
     }
+
 
     [HttpGet]
     public IActionResult Details(int id)

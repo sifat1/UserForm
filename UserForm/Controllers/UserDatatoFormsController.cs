@@ -44,7 +44,7 @@ public class UserDatatoFormsController : Controller
             Answers = form.Questions.Select(q => new AnswerInputModel
             {
                 QuestionId = q.Id
-            }).ToList() // Important!
+            }).ToList() 
         };
 
         return View(model);
@@ -57,7 +57,7 @@ public async Task<IActionResult> Submit(SubmitFormViewModel model)
 {
     if (!ModelState.IsValid)
     {
-        return BadRequest(ModelState); // Return detailed model errors
+        return BadRequest(ModelState); 
     }
 
     var form = await _context.Forms
@@ -82,13 +82,13 @@ public async Task<IActionResult> Submit(SubmitFormViewModel model)
     _context.FormResponses.Add(response);
     await _context.SaveChangesAsync();
 
-    return RedirectToAction("index", "Home"); 
+    return RedirectToAction("List", "FormManage"); 
 }
 
 
     public IActionResult ThankYou()
     {
-        return View(); // Show confirmation
+        return View(); 
     }
 
     

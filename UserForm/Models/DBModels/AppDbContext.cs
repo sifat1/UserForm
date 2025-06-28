@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using UserForm.Models.DBModels.Forms;
@@ -6,7 +7,7 @@ using UserForm.Models.DBModels.Users;
 
 namespace UserForm.Models.DBModels;
 
-public class AppDbContext : IdentityDbContext<UserDetails>
+public class AppDbContext : IdentityDbContext<UserDetails, IdentityRole, string>
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 

@@ -85,7 +85,8 @@ public class FormsController : Controller
         await _context.SaveChangesAsync();
 
         var savedId = _context.Forms.OrderByDescending(f => f.Id).First().Id;
-        return RedirectToAction("Edit", new { id = savedId });
+        TempData["SuccessMessage"] = "Form created successfully!";
+        return RedirectToAction("MyForms", "MyDashboard");
     }
 
     [HttpGet]

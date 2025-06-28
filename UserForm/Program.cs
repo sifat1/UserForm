@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using UserForm.Models.DBModels;
 using UserForm.Models.DBModels.Users;
@@ -22,17 +24,19 @@ public class Program
                     errorCodesToAdd: null);
             }));
 
-        builder.Services.AddDefaultIdentity<UserDetails>(options =>
-        {
-            options.Password.RequireDigit = false; 
-            options.Password.RequiredLength = 1;
-            options.Password.RequireNonAlphanumeric = false;
-            options.Password.RequireUppercase = false;
-            options.Password.RequireLowercase = false;
-            options.SignIn.RequireConfirmedAccount = false;
-            options.User.RequireUniqueEmail = true;
-        })
-        .AddEntityFrameworkStores<AppDbContext>();
+        builder.Services.AddIdentity<UserDetails, IdentityRole>(options =>
+            {
+                options.Password.RequireDigit = false;
+                options.Password.RequiredLength = 1;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequireUppercase = false;
+                options.Password.RequireLowercase = false;
+                options.SignIn.RequireConfirmedAccount = false;
+                options.User.RequireUniqueEmail = true;
+            })
+            .AddEntityFrameworkStores<AppDbContext>()
+            .AddDefaultTokenProviders();
+
 
         builder.Services.ConfigureApplicationCookie(options =>
         {

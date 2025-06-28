@@ -1,18 +1,26 @@
 @model UserForm.ViewModels.FormManage.UserFormListViewModel
 
-
 @{
     ViewData["Title"] = "My Forms";
     Layout = "_Layout";
 }
 
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+}
+
 <h2>My Forms</h2>
 
-<form asp-action="DeleteSelected" asp-controller="Account" method="post">
+<!-- Delete Form -->
+<form method="post" action="/MyDashboard/DeleteSelected">
     @Html.AntiForgeryToken()
-
     <div class="mb-3">
-        <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete selected forms?')">
+        <button type="submit" class="btn btn-danger" id="deleteButton">
             Delete Selected
         </button>
     </div>
@@ -24,12 +32,16 @@
                 <div class="card shadow-sm">
                     <div class="card-body">
                         <div class="form-check float-end">
-                            <input type="checkbox" class="form-check-input" name="selectedFormIds" value="@form.Id" />
+                            <input type="checkbox" 
+                                name="selectedFormIds" 
+                                value="@form.Id"
+                                class="form-check-input" />
                         </div>
                         <h5 class="card-title">@form.FormTitle</h5>
                         <p><strong>Topic:</strong> @form.FormTopic</p>
                         <p><strong>Visibility:</strong> @(form.IsPublic ? "Public" : "Private")</p>
-                        <a href="@Url.Action("Details", "MyDashboard", new { id = form.Id })" class="btn btn-sm btn-outline-info">View Details</a>
+                        <a href="@Url.Action("Details", new { id = form.Id })" 
+                           class="btn btn-sm btn-outline-info">View Details</a>
                     </div>
                 </div>
             </div>
@@ -37,6 +49,7 @@
     </div>
 </form>
 
+<!-- Pagination -->
 @if (Model.TotalPages > 1)
 {
     <nav class="mt-4">
@@ -49,4 +62,18 @@
             }
         </ul>
     </nav>
+}
+
+@section Scripts {
+    <script>
+        document.getElementById('deleteButton').addEventListener('click', function(e) {
+            const checkedBoxes = document.querySelectorAll('input[name="selectedFormIds"]:checked');
+            if (checkedBoxes.length === 0) {
+                e.preventDefault();
+                alert('Please select at least one form to delete');
+            } else if (!confirm(`Are you sure you want to delete ${checkedBoxes.length} selected form(s)?`)) {
+                e.preventDefault();
+            }
+        });
+    </script>
 }
