@@ -6,8 +6,17 @@ using UserForm.ViewModels.Admin;
 
 namespace UserForm.Controllers;
 
-public class AdminController(UserManager<UserDetails> _userManager) : Controller
+
+[Authorize(Roles = "Admin")]
+public class AdminController : Controller
 {
+    private readonly UserManager<UserDetails> _userManager;
+
+    public AdminController(UserManager<UserDetails> userManager)
+    {
+        _userManager = userManager;
+    }
+
     [HttpGet]
     public async Task<IActionResult> Admin()
     {
@@ -30,9 +39,17 @@ public class AdminController(UserManager<UserDetails> _userManager) : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> BulkAction(AdminUserManagementViewModel vm, string actionType)
+    public async Task<IActionResult> BulkAction(
+        [FromForm]List<string> SelectedUserIds, 
+        [FromForm] string actionType)
     {
-        foreach (var userId in vm.SelectedUserIds ?? new List<string>())
+        if (SelectedUserIds == null || !SelectedUserIds.Any())
+        {
+            TempData["ErrorMessage"] = "No users selected";
+            return RedirectToAction("Admin");
+        }
+
+        foreach (var userId in SelectedUserIds)
         {
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null) continue;
@@ -43,7 +60,7 @@ public class AdminController(UserManager<UserDetails> _userManager) : Controller
                     await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.UtcNow.AddYears(100));
                     break;
                 case "unblock":
-                    await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.UtcNow);
+                    await _userManager.SetLockoutEndDateAsync(user, null);
                     break;
                 case "makeAdmin":
                     if (!await _userManager.IsInRoleAsync(user, "Admin"))
@@ -56,7 +73,7 @@ public class AdminController(UserManager<UserDetails> _userManager) : Controller
             }
         }
 
+        TempData["SuccessMessage"] = "Bulk action completed successfully";
         return RedirectToAction("Admin");
     }
-
 }

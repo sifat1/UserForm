@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="AppName" xml:space="preserve">
+    <value>Kreator Formularzy</value>
+  </data>
+  <data name="ManageUsers" xml:space="preserve">
+    <value>Zarządzaj użytkownikami</value>
+  </data>
+  <data name="Hello" xml:space="preserve">
+    <value>Witaj</value>
+  </data>
+  <data name="CreateNewForm" xml:space="preserve">
+    <value>Utwórz nowy formularz</value>
+  </data>
+  <data name="MyForms" xml:space="preserve">
+    <value>Moje formularze</value>
+  </data>
+  <data name="Logout" xml:space="preserve">
+    <value>Wyloguj się</value>
+  </data>
+  <data name="Login" xml:space="preserve">
+    <value>Zaloguj się</value>
+  </data>
+  <data name="Register" xml:space="preserve">
+    <value>Zarejestruj się</value>
+  </data>
+  <data name="Search" xml:space="preserve">
+    <value>Szukaj</value>
+  </data>
+  <data name="SearchPlaceholder" xml:space="preserve">
+    <value>Wyszukaj formularze...</value>
+  </data>
+</root>
