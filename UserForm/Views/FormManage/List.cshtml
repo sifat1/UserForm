@@ -2,6 +2,7 @@
 @using System.Web
 @using UserForm.ViewModels.Analytics
 @using System.Security.Claims
+@using UserForm.ViewModels.FormManage
 
 @{
     Layout = "_Layout";
@@ -9,7 +10,7 @@
     var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 }
 
-@await Html.PartialAsync("_TopTemplatesPartial", (List<PopularTemplateViewModel>)ViewData["TopTemplates"])
+@await Html.PartialAsync("_TopTemplatesPartial", (List<FormCardViewModel>)ViewData["TopTemplates"])
 
 <form method="get" asp-controller="FormManage" asp-action="List" class="row g-3 mb-4">
     <div class="col-md-4">

@@ -121,7 +121,7 @@ public class FormManageController(AppDbContext context) : Controller
         return RedirectToAction("List"); // or form details page
     }
     
-    public async Task<List<PopularTemplateViewModel>> GetTopTemplatesAsync()
+    public async Task<List<FormCardViewModel>> GetTopTemplatesAsync()
     {
         return await _context.FormResponses
             .GroupBy(r => r.FormId)
@@ -135,12 +135,13 @@ public class FormManageController(AppDbContext context) : Controller
             .Join(_context.Forms,
                 r => r.FormId,
                 f => f.Id,
-                (r, f) => new PopularTemplateViewModel
+                (r, f) => new FormCardViewModel
                 {
-                    FormId = f.Id,
+                    Id = f.Id,
                     FormTitle = f.FormTitle,
-                    OwnerEmail = f.CreatedBy.Email,
-                    SubmissionCount = r.Count
+                    FormTopic = f.FormTopic,
+                    IsPublic = f.IsPublic,
+                    LikeCount = _context.Likes.Count(l => l.FormId == f.Id)
                 })
             .ToListAsync();
     }
@@ -160,9 +161,5 @@ public IActionResult SetLanguage(string culture, string returnUrl)
 
     return LocalRedirect(returnUrl ?? "/");
 }
-
-
-
-
 
 }
