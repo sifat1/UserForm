@@ -10,7 +10,14 @@
     var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 }
 
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white">
+        Top 5 Most Used Templates
+    </div>
+    <div class="card-body p-1">
 @await Html.PartialAsync("_TopTemplatesPartial", (List<FormCardViewModel>)ViewData["TopTemplates"])
+    </div>
+</div>
 
 <form method="get" asp-controller="FormManage" asp-action="List" class="row g-3 mb-4">
     <div class="col-md-4">
@@ -49,43 +56,7 @@
     </div>
 }
 
-<div class="row row-cols-1 row-cols-md-3 g-4">
-    @foreach (var form in Model.Forms)
-    {
-        <div class="col">
-            <div class="card shadow-sm h-100">
-                <div class="card-body">
-                    <h5 class="card-title">@form.FormTitle</h5>
-                    <p><strong>Topic:</strong> @form.FormTopic</p>
-
-                    <div class="d-flex align-items-center gap-2 mb-2">
-                    <form method="post" action="@Url.Action("Like", "FormManage")">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="formId" value="@form.Id" />
-                        <input type="hidden" name="returnUrl" value="@($"{Context.Request.Path}{Context.Request.QueryString}")" />
-                        <button type="submit" class="btn btn-sm btn-outline-danger">
-                            ❤️ Like (@form.LikeCount)
-                        </button>
-                    </form>
-                    @if (form.IsPublic)
-                    {
-                        <a class="btn btn-sm btn-outline-primary"
-                           href="@Url.Action("CreateFromTemplate", "Forms", new { id = form.Id })">
-                            Use as Template
-                        </a>
-                    }
-
-                    <a class="btn btn-sm btn-outline-success"
-                       href="@Url.Action("Submit", "UserDatatoForms", new { id = form.Id })">
-                        Fill Form
-                    </a>
-                    </div>
-                    
-                </div>
-            </div>
-        </div>
-    }
-</div>
+@await Html.PartialAsync("_TopTemplatesPartial", Model.Forms)
 
 <!-- Pagination -->
 @if (Model.TotalPages > 1)
