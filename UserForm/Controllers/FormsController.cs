@@ -8,15 +8,11 @@ using UserForm.Models.DBModels.Forms;
 using UserForm.Models.DBModels.Question;
 using UserForm.ViewModels.Analytics;
 
-public class FormsController : Controller
+namespace UserForm.Controllers;
+
+[Authorize]
+public class FormsController(AppDbContext context) : Controller
 {
-    private readonly AppDbContext _context;
-
-    public FormsController(AppDbContext context)
-    {
-        _context = context;
-    }
-
     private string GetUserId() => User.FindFirstValue(ClaimTypes.NameIdentifier);
 
     private FormEntity MapDtoToEntity(CreateFormDto dto) => new()
@@ -54,7 +50,7 @@ public class FormsController : Controller
     };
 
     private async Task<FormEntity?> GetFormWithDetailsAsync(int id) =>
-        await _context.Forms
+        await context.Forms
             .Include(f => f.Questions).ThenInclude(q => q.Options)
             .FirstOrDefaultAsync(f => f.Id == id);
 
@@ -75,33 +71,30 @@ public class FormsController : Controller
     }
 
     [HttpPost]
-    [Authorize]
     public async Task<IActionResult> Create(CreateFormDto dto)
     {
         if (!ModelState.IsValid)
             return View(dto);
 
-        _context.Forms.Add(MapDtoToEntity(dto));
-        await _context.SaveChangesAsync();
+        context.Forms.Add(MapDtoToEntity(dto));
+        await context.SaveChangesAsync();
 
-        var savedId = _context.Forms.OrderByDescending(f => f.Id).First().Id;
+        var savedId = context.Forms.OrderByDescending(f => f.Id).First().Id;
         TempData["SuccessMessage"] = "Form created successfully!";
         return RedirectToAction("MyForms", "MyDashboard");
     }
 
     [HttpGet]
-    [Authorize]
     public async Task<IActionResult> Edit(int id)
     {
         var form = await GetFormWithDetailsAsync(id);
         if (form == null) return NotFound();
-        if (!UserOwnsForm(form)) return Unauthorized();
+        if (!UserOwnsForm(form) && User.IsInRole("Admin")) return Unauthorized();
 
         return View(MapEntityToDto(form));
     }
 
     [HttpPost]
-    [Authorize]
     public async Task<IActionResult> Edit(CreateFormDto dto)
     {
         if (!ModelState.IsValid) return View(dto);
@@ -115,12 +108,12 @@ public class FormsController : Controller
         form.Tags = dto.Tags;
         form.IsPublic = dto.IsPublic;
 
-        _context.Options.RemoveRange(form.Questions.SelectMany(q => q.Options));
-        _context.Questions.RemoveRange(form.Questions);
+        context.Options.RemoveRange(form.Questions.SelectMany(q => q.Options));
+        context.Questions.RemoveRange(form.Questions);
 
         form.Questions = MapDtoToEntity(dto).Questions;
 
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
         return RedirectToAction("Edit", new { id = form.Id });
     }
 
@@ -134,26 +127,25 @@ public class FormsController : Controller
     }
 
     [HttpPost]
-    [Authorize]
     public async Task<IActionResult> CreateFromTemplate(CreateFormDto dto)
     {
         if (!ModelState.IsValid) return View(dto);
 
-        _context.Forms.Add(MapDtoToEntity(dto));
-        await _context.SaveChangesAsync();
+        context.Forms.Add(MapDtoToEntity(dto));
+        await context.SaveChangesAsync();
 
-        var savedId = _context.Forms.OrderByDescending(f => f.Id).First().Id;
-        return RedirectToAction("Edit", new { id = savedId });
+        var savedId = context.Forms.OrderByDescending(f => f.Id).First().Id;
+        TempData["SuccessMessage"] = "Form created successfully!";
+        return RedirectToAction("MyForms", "MyDashboard");
     }
 
     [HttpGet]
-    [Authorize]
     public async Task<IActionResult> Analytics(int id)
     {
-        var form = await _context.Forms
+        var form = await context.Forms
             .Include(f => f.Questions).ThenInclude(q => q.Options)
             .Include(f => f.Responses).ThenInclude(r => r.Answers)
-            .FirstOrDefaultAsync(f => f.Id == id && f.CreatedById == GetUserId());
+            .FirstOrDefaultAsync(f => f.Id == id && f.CreatedById == GetUserId() || User.IsInRole("Admin"));
 
         if (form == null) return NotFound();
 

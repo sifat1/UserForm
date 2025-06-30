@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using NpgsqlTypes;
 using UserForm.Models.DBModels.Users;
 
 namespace UserForm.Models.DBModels.Forms;
@@ -17,4 +18,6 @@ public class CommentEntity
     public string Content { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    
+    public NpgsqlTsVector CommentSearchVector { get; set; }
 }

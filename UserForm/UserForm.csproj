@@ -24,7 +24,8 @@
       <PackageReference Include="Microsoft.Extensions.Localization" Version="9.0.6" />
       <PackageReference Include="Newtonsoft.Json" Version="8.0.3" />
       <PackageReference Include="Npgsql" Version="8.0.3" />
-      <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.2" />
+      <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.4" />
+      <PackageReference Include="ReflectionIT.Mvc.Paging" Version="8.0.0" />
       <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.3.0" />
     </ItemGroup>
 

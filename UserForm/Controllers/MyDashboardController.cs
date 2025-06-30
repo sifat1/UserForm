@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using UserForm.Models.DBModels;
@@ -6,14 +7,15 @@ using UserForm.ViewModels.FormManage;
 
 namespace UserForm.Controllers;
 
-public class MyDashboardController(AppDbContext _context) : Controller
+[Authorize]
+public class MyDashboardController(AppDbContext context) : Controller
 {
     
     [HttpGet]
     public async Task<IActionResult> MyForms(int page = 1, int pageSize = 6)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var query = _context.Forms.Where(f => f.CreatedById == userId);
+        var query = context.Forms.Where(f => f.CreatedById == userId || User.IsInRole("Admin"));
 
         int totalCount = await query.CountAsync();
         int totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
@@ -49,14 +51,14 @@ public class MyDashboardController(AppDbContext _context) : Controller
         foreach (var id in selectedFormIds)
             Console.WriteLine($" - {id}");
 
-        var formsToDelete = await _context.Forms
+        var formsToDelete = await context.Forms
             .Where(f => selectedFormIds.Contains(f.Id) && f.CreatedById == userId)
             .ToListAsync();
 
         if (formsToDelete.Any())
         {
-            _context.Forms.RemoveRange(formsToDelete);
-            await _context.SaveChangesAsync();
+            context.Forms.RemoveRange(formsToDelete);
+            await context.SaveChangesAsync();
             TempData["SuccessMessage"] = "Form deleted successfully!";
         }
 

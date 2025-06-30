@@ -8,30 +8,23 @@ namespace UserForm.Controllers;
 
 
 [Authorize(Roles = "Admin")]
-public class AdminController : Controller
+public class AdminController(UserManager<UserDetails> userManager) : Controller
 {
-    private readonly UserManager<UserDetails> _userManager;
-
-    public AdminController(UserManager<UserDetails> userManager)
-    {
-        _userManager = userManager;
-    }
-
     [HttpGet]
     public async Task<IActionResult> Admin()
     {
-        var users = _userManager.Users.ToList();
+        var users = userManager.Users.ToList();
         var model = new AdminUserManagementViewModel();
 
         foreach (var user in users)
         {
-            var roles = await _userManager.GetRolesAsync(user);
+            var roles = await userManager.GetRolesAsync(user);
             model.Users.Add(new AdminUserViewModel
             {
                 UserId = user.Id,
                 Email = user.Email,
                 IsAdmin = roles.Contains("Admin"),
-                IsLockedOut = await _userManager.IsLockedOutAsync(user)
+                IsLockedOut = await userManager.IsLockedOutAsync(user)
             });
         }
 
@@ -51,24 +44,24 @@ public class AdminController : Controller
 
         foreach (var userId in SelectedUserIds)
         {
-            var user = await _userManager.FindByIdAsync(userId);
+            var user = await userManager.FindByIdAsync(userId);
             if (user == null) continue;
 
             switch (actionType)
             {
                 case "block":
-                    await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.UtcNow.AddYears(100));
+                    await userManager.SetLockoutEndDateAsync(user, DateTimeOffset.UtcNow.AddYears(100));
                     break;
                 case "unblock":
-                    await _userManager.SetLockoutEndDateAsync(user, null);
+                    await userManager.SetLockoutEndDateAsync(user, null);
                     break;
                 case "makeAdmin":
-                    if (!await _userManager.IsInRoleAsync(user, "Admin"))
-                        await _userManager.AddToRoleAsync(user, "Admin");
+                    if (!await userManager.IsInRoleAsync(user, "Admin"))
+                        await userManager.AddToRoleAsync(user, "Admin");
                     break;
                 case "removeAdmin":
-                    if (await _userManager.IsInRoleAsync(user, "Admin"))
-                        await _userManager.RemoveFromRoleAsync(user, "Admin");
+                    if (await userManager.IsInRoleAsync(user, "Admin"))
+                        await userManager.RemoveFromRoleAsync(user, "Admin");
                     break;
             }
         }

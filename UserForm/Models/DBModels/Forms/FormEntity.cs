@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using NpgsqlTypes;
 using UserForm.Models.DBModels.Users;
 
 namespace UserForm.Models.DBModels.Forms;
@@ -21,4 +22,6 @@ public class FormEntity
     public UserDetails CreatedBy { get; set; }
     public ICollection<QuestionEntity> Questions { get; set; } = new List<QuestionEntity>();
     public ICollection<FormResponse> Responses { get; set; } = new List<FormResponse>();
+    
+    public NpgsqlTsVector FormSearchVector { get; set; }
 }

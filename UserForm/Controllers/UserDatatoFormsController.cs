@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using UserForm.Models.DBModels;
@@ -9,19 +10,13 @@ using UserForm.ViewModels.usersubmitformdata;
 namespace UserForm.Controllers;
 
 
-public class UserDatatoFormsController : Controller
+
+public class UserDatatoFormsController(AppDbContext context) : Controller
 {
-    private readonly AppDbContext _context;
-
-    public UserDatatoFormsController(AppDbContext context)
-    {
-        _context = context;
-    }
-
     [HttpGet]
     public async Task<IActionResult> Submit(int id)
     {
-        var form = await _context.Forms
+        var form = await context.Forms
             .Include(f => f.Questions)
             .ThenInclude(q => q.Options)
             .FirstOrDefaultAsync(f => f.Id == id);
@@ -51,44 +46,39 @@ public class UserDatatoFormsController : Controller
     }
 
 
-[HttpPost]
-[ValidateAntiForgeryToken]
-public async Task<IActionResult> Submit(SubmitFormViewModel model)
-{
-    if (!ModelState.IsValid)
+    [HttpPost]
+    [Authorize]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Submit(SubmitFormViewModel model)
     {
-        return BadRequest(ModelState); 
-    }
-
-    var form = await _context.Forms
-        .Include(f => f.Questions)
-        .FirstOrDefaultAsync(f => f.Id == model.FormId);
-
-    if (form == null)
-        return NotFound();
-
-    var response = new FormResponse
-    {
-        FormId = form.Id,
-        SubmittedById = User.FindFirstValue(ClaimTypes.NameIdentifier), 
-        SubmittedAt = DateTime.UtcNow,
-        Answers = model.Answers.Select(a => new AnswerEntity
+        if (!ModelState.IsValid)
         {
-            QuestionId = a.QuestionId,
-            AnswerText = a.TextAnswer ?? a.SelectedOption ?? a.NumberAnswer?.ToString()
-        }).ToList()
-    };
+            return BadRequest(ModelState); 
+        }
 
-    _context.FormResponses.Add(response);
-    await _context.SaveChangesAsync();
+        var form = await context.Forms
+            .Include(f => f.Questions)
+            .FirstOrDefaultAsync(f => f.Id == model.FormId);
 
-    return RedirectToAction("List", "FormManage"); 
-}
+        if (form == null)
+            return NotFound();
 
+        var response = new FormResponse
+        {
+            FormId = form.Id,
+            SubmittedById = User.FindFirstValue(ClaimTypes.NameIdentifier), 
+            SubmittedAt = DateTime.UtcNow,
+            Answers = model.Answers.Select(a => new AnswerEntity
+            {
+                QuestionId = a.QuestionId,
+                AnswerText = a.TextAnswer ?? a.SelectedOption ?? a.NumberAnswer?.ToString()
+            }).ToList()
+        };
 
-    public IActionResult ThankYou()
-    {
-        return View(); 
+        context.FormResponses.Add(response);
+        await context.SaveChangesAsync();
+
+        return RedirectToAction("List", "FormManage"); 
     }
 
     

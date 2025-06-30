@@ -5,14 +5,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using UserForm.Models.DBModels;
 using UserForm.Models.DBModels.Forms;
-using UserForm.ViewModels.Analytics;
 using UserForm.ViewModels.FormManage;
 
 namespace UserForm.Controllers;
 
 public class FormManageController(AppDbContext context) : Controller
 {
-    AppDbContext _context = context;
 
     [HttpGet("/")]
     public async Task<IActionResult> List(string? topic, string? tag, string? searchQuery, int page = 1, int pageSize = 6)
@@ -21,7 +19,7 @@ public class FormManageController(AppDbContext context) : Controller
         ViewData["TopTemplates"] = topTemplates;
 
         var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var query = _context.Forms.AsQueryable();
+        var query = context.Forms.AsQueryable();
         if (!string.IsNullOrEmpty(topic))
             query = query.Where(f => f.FormTopic == topic);
 
@@ -29,9 +27,16 @@ public class FormManageController(AppDbContext context) : Controller
             query = query.Where(f => f.Tags.Contains(tag));
 
         if (!string.IsNullOrEmpty(searchQuery))
-            query = query.Where(f => f.FormTitle.Contains(searchQuery));
+        {
+            var tsQuery = EF.Functions.PlainToTsQuery("english", searchQuery);
+    
+            query = query
+                .Where(f => f.FormSearchVector.Matches(tsQuery))
+                .OrderByDescending(f => EF.Functions.ToTsVector("english", f.FormTitle)
+                    .Rank(EF.Functions.ToTsQuery("english", searchQuery)));
+        }
 
-        // Pagination
+        
         int totalCount = await query.CountAsync();
         int totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
         
@@ -45,16 +50,16 @@ public class FormManageController(AppDbContext context) : Controller
                 FormTitle = f.FormTitle,
                 FormTopic = f.FormTopic,
                 IsPublic = f.IsPublic,
-                LikeCount = _context.Likes.Count(l => l.FormId == f.Id)
+                LikeCount = context.Likes.Count(l => l.FormId == f.Id)
             }).ToListAsync();
 
         // Topics and Tags
-        var allTopics = await _context.Forms
+        var allTopics = await context.Forms
             .Select(f => f.FormTopic)
             .Distinct()
             .ToListAsync();
 
-        var allTagStrings = await _context.Forms
+        var allTagStrings = await context.Forms
             .Select(f => f.Tags)
             .ToListAsync();
 
@@ -66,7 +71,7 @@ public class FormManageController(AppDbContext context) : Controller
             .OrderBy(t => t)
             .ToList();
 
-        // ViewModel
+        
         var vm = new PaginatedFormListViewModel
         {
             Forms = forms,
@@ -91,12 +96,12 @@ public class FormManageController(AppDbContext context) : Controller
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (userId == null) return Unauthorized();
 
-        var alreadyLiked = await _context.Likes.AnyAsync(l => l.FormId == formId && l.UserId == userId);
+        var alreadyLiked = await context.Likes.AnyAsync(l => l.FormId == formId && l.UserId == userId);
 
         if (!alreadyLiked)
         {
-            _context.Likes.Add(new LikeEntity { FormId = formId, UserId = userId });
-            await _context.SaveChangesAsync();
+            context.Likes.Add(new LikeEntity { FormId = formId, UserId = userId });
+            await context.SaveChangesAsync();
         }
 
         return !string.IsNullOrEmpty(returnUrl) ? Redirect(returnUrl) : RedirectToAction("List");
@@ -104,6 +109,7 @@ public class FormManageController(AppDbContext context) : Controller
     
     
     [HttpPost]
+    [Authorize]
     public async Task<IActionResult> Comment(int formId, string content)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -115,15 +121,15 @@ public class FormManageController(AppDbContext context) : Controller
                 UserId = userId,
                 Content = content
             };
-            _context.Comments.Add(comment);
-            await _context.SaveChangesAsync();
+            context.Comments.Add(comment);
+            await context.SaveChangesAsync();
         }
-        return RedirectToAction("List"); // or form details page
+        return RedirectToAction("List"); 
     }
     
     public async Task<List<FormCardViewModel>> GetTopTemplatesAsync()
     {
-        return await _context.FormResponses
+        return await context.FormResponses
             .GroupBy(r => r.FormId)
             .Select(g => new
             {
@@ -132,7 +138,7 @@ public class FormManageController(AppDbContext context) : Controller
             })
             .OrderByDescending(g => g.Count)
             .Take(5)
-            .Join(_context.Forms,
+            .Join(context.Forms,
                 r => r.FormId,
                 f => f.Id,
                 (r, f) => new FormCardViewModel
@@ -141,25 +147,25 @@ public class FormManageController(AppDbContext context) : Controller
                     FormTitle = f.FormTitle,
                     FormTopic = f.FormTopic,
                     IsPublic = f.IsPublic,
-                    LikeCount = _context.Likes.Count(l => l.FormId == f.Id)
+                    LikeCount = context.Likes.Count(l => l.FormId == f.Id)
                 })
             .ToListAsync();
     }
     
 
-[HttpPost]
-public IActionResult SetLanguage(string culture, string returnUrl)
-{
-    Console.WriteLine($"Culture selected: {culture}");
-    Console.WriteLine($"Return URL: {returnUrl}");
+    [HttpPost]
+    public IActionResult SetLanguage(string culture, string returnUrl)
+    {
+        Console.WriteLine($"Culture selected: {culture}");
+        Console.WriteLine($"Return URL: {returnUrl}");
 
-    Response.Cookies.Append(
-        CookieRequestCultureProvider.DefaultCookieName,
-        CookieRequestCultureProvider.MakeCookieValue(new RequestCulture(culture)),
-        new CookieOptions { Expires = DateTimeOffset.UtcNow.AddYears(1) }
-    );
+        Response.Cookies.Append(
+            CookieRequestCultureProvider.DefaultCookieName,
+            CookieRequestCultureProvider.MakeCookieValue(new RequestCulture(culture)),
+            new CookieOptions { Expires = DateTimeOffset.UtcNow.AddYears(1) }
+        );
 
-    return LocalRedirect(returnUrl ?? "/");
-}
+        return LocalRedirect(returnUrl ?? "/");
+    }
 
 }
