@@ -14,11 +14,10 @@
         <label for="FormTopic" class="form-label">Form Topic</label>
         <select id="FormTopic" name="FormTopic" class="form-select" required>
             <option value="">-- Select Topic --</option>
-            <option value="Science" @(Model?.FormTopic == "Science" ? "selected" : "")>Science</option>
-            <option value="Arts" @(Model?.FormTopic == "Arts" ? "selected" : "")>Arts</option>
-            <option value="Math" @(Model?.FormTopic == "Math" ? "selected" : "")>Math</option>
-            <option value="History" @(Model?.FormTopic == "History" ? "selected" : "")>History</option>
-            <option value="Technology" @(Model?.FormTopic == "Technology" ? "selected" : "")>Technology</option>
+            @foreach (var topic in Model.Topics ?? new List<string>())
+            {
+                <option value="@topic" @(Model?.FormTopic == topic ? "selected" : "")>@topic</option>
+            }
         </select>
     </div>
 

@@ -15,6 +15,9 @@ public class FormsController(AppDbContext context) : Controller
 {
     private string GetUserId() => User.FindFirstValue(ClaimTypes.NameIdentifier);
 
+    private List<string> GetTopics() =>
+        context.Topics.Select(f => f.TopicName).Distinct().ToList();
+
     private FormEntity MapDtoToEntity(CreateFormDto dto) => new()
     {
         FormTitle = dto.FormTitle,
@@ -41,6 +44,7 @@ public class FormsController(AppDbContext context) : Controller
         FormTopic = form.FormTopic,
         Tags = form.Tags,
         IsPublic = form.IsPublic,
+        Topics = GetTopics(),
         Questions = form.Questions.Select(q => new QuestionDto
         {
             QuestionText = q.QuestionText,
@@ -66,7 +70,8 @@ public class FormsController(AppDbContext context) : Controller
             FormTopic = "Science",
             Tags = "sample,tag",
             IsPublic = true,
-            Questions = new List<QuestionDto>()
+            Questions = new List<QuestionDto>(),
+            Topics = GetTopics()
         });
     }
 

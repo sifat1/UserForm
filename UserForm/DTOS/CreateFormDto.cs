@@ -10,5 +10,6 @@ public class CreateFormDto
     public string Tags { get; set; } 
     public bool IsPublic { get; set; }
     public List<QuestionDto> Questions { get; set; }
+    public List<string> Topics { get; set; } = new List<string>();
 }
 

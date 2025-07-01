@@ -10,7 +10,8 @@ namespace UserForm.Models.DBModels;
 public class AppDbContext : IdentityDbContext<UserDetails, IdentityRole, string>
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
-
+    
+    public DbSet<TopicEntity> Topics { get; set; }
     public DbSet<FormEntity> Forms { get; set; }
     public DbSet<LikeEntity> Likes { get; set; }
     public DbSet<CommentEntity> Comments { get; set; }
