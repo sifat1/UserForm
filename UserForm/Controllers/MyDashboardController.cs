@@ -89,12 +89,18 @@ public class MyDashboardController(AppDbContext context) : Controller
 
         var model = await PagingList.CreateAsync(query, 5, page);
 
+        model.RouteValue = new RouteValueDictionary {
+            { "formId", formId }
+        };
+
         ViewBag.Questions = questions;
         ViewBag.FormTitle = form.FormTitle;
         ViewBag.FormId = formId;
 
         return View(model);
     }
+
+
     
     [HttpGet]
     public async Task<IActionResult> EditSubmission(int responseId)

@@ -50,10 +50,12 @@ public class AdminController(UserManager<UserDetails> userManager) : Controller
             switch (actionType)
             {
                 case "block":
-                    await userManager.SetLockoutEndDateAsync(user, DateTimeOffset.UtcNow.AddYears(100));
+                    user.IsBlocked = true;
+                    await userManager.UpdateAsync(user);
                     break;
                 case "unblock":
-                    await userManager.SetLockoutEndDateAsync(user, null);
+                    user.IsBlocked = false;
+                    await userManager.UpdateAsync(user);
                     break;
                 case "makeAdmin":
                     if (!await userManager.IsInRoleAsync(user, "Admin"))

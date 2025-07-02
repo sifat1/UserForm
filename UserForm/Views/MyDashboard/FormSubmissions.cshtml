@@ -1,4 +1,5 @@
 @model ReflectionIT.Mvc.Paging.PagingList<UserForm.Models.DBModels.Forms.FormResponse>
+
 @{
     Layout = "_Layout";
     ViewData["Title"] = "Form Submissions";
@@ -42,6 +43,9 @@ else
         }
         </tbody>
     </table>
-
-    <partial name="_Paging" for="@Model" />
+    
+    <pager class="pagination justify-content-center"
+           asp-action="FormSubmissions"
+           asp-route-formId="@ViewBag.FormId"
+           for="@Model" />
 }
