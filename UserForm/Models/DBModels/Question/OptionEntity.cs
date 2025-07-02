@@ -8,8 +8,6 @@ public class OptionEntity
 
     [Required]
     public string OptionText { get; set; }
-
-    // Foreign key to parent question
     public int QuestionId { get; set; }
     public QuestionEntity Question { get; set; }
 }

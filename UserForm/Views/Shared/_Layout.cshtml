@@ -5,11 +5,8 @@
 @inject IViewLocalizer Localizer
 
 @{
-    // Get current culture
     var requestCulture = Context.Features.Get<IRequestCultureFeature>();
     var currentCulture = requestCulture?.RequestCulture.UICulture.Name ?? "en-US";
-
-    // Culture options
     var cultureItems = new List<SelectListItem>
     {
         new SelectListItem { Value = "en-US", Text = "English" },
@@ -49,17 +46,23 @@
             </button>
 
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <form class="d-flex me-2" method="get" asp-controller="FormManage" asp-action="List">
+                        <input class="form-control me-2" type="search" name="search" placeholder="@Localizer["SearchPlaceholder"]"/>
+                        <button class="btn btn-outline-light" type="submit">@Localizer["Search"]</button>
+                    </form>
                     @if (User.Identity?.IsAuthenticated == true)
                     {
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Admin" asp-action="Admin">@Localizer["ManageUsers"]</a>
-                        </li>
+                        if (User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Admin"
+                                   asp-action="Admin">@Localizer["ManageUsers"]</a>
+                            </li>
+                        }
+
                         <li class="nav-item">
                             <span class="nav-link text-light">@Localizer["Hello"], @User.Identity.Name</span>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Forms" asp-action="Create">@Localizer["CreateNewForm"]</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" asp-controller="MyDashboard" asp-action="MyForms">@Localizer["MyForms"]</a>
@@ -80,10 +83,6 @@
                         </li>
                     }
                 </ul>
-                <form class="d-flex me-2" method="get" asp-controller="FormManage" asp-action="List">
-                    <input class="form-control me-2" type="search" name="search" placeholder="@Localizer["SearchPlaceholder"]" />
-                    <button class="btn btn-outline-light" type="submit">@Localizer["Search"]</button>
-                </form>
                 <div class="form-check form-switch text-light me-3">
                     <input class="form-check-input" type="checkbox" id="themeToggle">
                     <label class="form-check-label" for="themeToggle">Dark Mode</label>

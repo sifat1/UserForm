@@ -45,7 +45,7 @@ public class AccountController : Controller
         {
             Email = model.Email,
             IsBlocked = false,
-            UserName = model.Email,
+            UserName = model.Name,
             LastLogin = DateTime.UtcNow,
         };
 
@@ -54,7 +54,7 @@ public class AccountController : Controller
         if (result.Succeeded)
         {
             await _signInManager.SignInAsync(user, isPersistent: false);
-            return RedirectToAction("ShowUsers", "ManageUser");
+            return RedirectToAction("List", "FormManage");
         }
 
         foreach (var error in result.Errors)

@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using NpgsqlTypes;
+using UserForm.Models.DBModels.Question;
 using UserForm.Models.DBModels.Users;
 
 namespace UserForm.Models.DBModels.Forms;

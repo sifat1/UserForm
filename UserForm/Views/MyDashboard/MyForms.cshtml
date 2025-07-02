@@ -14,42 +14,60 @@
     <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
 }
 
-<h2>My Forms</h2>
+<h5 class="mb-4">My Forms</h5>
 
-<!-- Delete Form -->
 <form method="post" action="/MyDashboard/DeleteSelected">
     @Html.AntiForgeryToken()
+
     <div class="mb-3">
         <button type="submit" class="btn btn-danger" id="deleteButton">
             Delete Selected
         </button>
+        <a class="btn btn-success" href="/Forms/Create">Create NewForm</a>
     </div>
 
-    <div class="row row-cols-1 row-cols-md-2 g-4">
-        @foreach (var form in Model.Forms)
-        {
-            <div class="col">
-                <div class="card shadow-sm">
-                    <div class="card-body">
-                        <div class="form-check float-end">
-                            <input type="checkbox" 
-                                name="selectedFormIds" 
-                                value="@form.Id"
-                                class="form-check-input" />
-                        </div>
-                        <h5 class="card-title">@form.FormTitle</h5>
-                        <p><strong>Topic:</strong> @form.FormTopic</p>
-                        <p><strong>Visibility:</strong> @(form.IsPublic ? "Public" : "Private")</p>
-                        <a href="@Url.Action("Details", new { id = form.Id })" 
-                           class="btn btn-sm btn-outline-info">View Details</a>
-                    </div>
-                </div>
-            </div>
-        }
-    </div>
+    <table class="table table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th scope="col">
+                    <input type="checkbox" id="selectAll" />
+                </th>
+                <th scope="col">Title</th>
+                <th scope="col">Topic</th>
+                <th scope="col">Visibility</th>
+                <th scope="col">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var form in Model.Forms)
+            {
+                <tr>
+                    <td>
+                        <input type="checkbox" name="selectedFormIds" value="@form.Id" class="form-check-input select-item" />
+                    </td>
+                    <td>@form.FormTitle</td>
+                    <td>@form.FormTopic</td>
+                    <td>
+                        <span class="badge @(form.IsPublic ? "bg-success" : "bg-secondary")">
+                            @(form.IsPublic ? "Public" : "Private")
+                        </span>
+                    </td>
+                    <td>
+                        <a href="@Url.Action("Details", "MyDashboard", new { id = form.Id })" 
+                           class="btn btn-sm btn-outline-info me-1">
+                            View Details
+                        </a>
+                        <a href="@Url.Action("FormSubmissions", "MyDashboard", new { formId = form.Id })"
+                           class="btn btn-sm btn-outline-primary">
+                            View Submissions
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
 </form>
 
-<!-- Pagination -->
 @if (Model.TotalPages > 1)
 {
     <nav class="mt-4">
@@ -66,14 +84,19 @@
 
 @section Scripts {
     <script>
-        document.getElementById('deleteButton').addEventListener('click', function(e) {
-            const checkedBoxes = document.querySelectorAll('input[name="selectedFormIds"]:checked');
+        document.getElementById('deleteButton').addEventListener('click', function (e) {
+            const checkedBoxes = document.querySelectorAll('.select-item:checked');
             if (checkedBoxes.length === 0) {
                 e.preventDefault();
                 alert('Please select at least one form to delete');
             } else if (!confirm(`Are you sure you want to delete ${checkedBoxes.length} selected form(s)?`)) {
                 e.preventDefault();
             }
+        });
+
+        document.getElementById('selectAll').addEventListener('change', function () {
+            const items = document.querySelectorAll('.select-item');
+            items.forEach(cb => cb.checked = this.checked);
         });
     </script>
 }

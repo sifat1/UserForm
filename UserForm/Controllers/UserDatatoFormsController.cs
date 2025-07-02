@@ -63,10 +63,13 @@ public class UserDatatoFormsController(AppDbContext context) : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Submit(SubmitFormViewModel model)
     {
+        
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState); 
         }
+
+        var userid = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         var form = await context.Forms
             .Include(f => f.Questions)
@@ -74,11 +77,16 @@ public class UserDatatoFormsController(AppDbContext context) : Controller
 
         if (form == null)
             return NotFound();
-
+        
+        var isduplicate = context.FormResponses.Where(fr => 
+            fr.FormId == form.Id && fr.SubmittedById == userid).Any();
+        
+        if(isduplicate) return BadRequest();
+        
         var response = new FormResponse
         {
             FormId = form.Id,
-            SubmittedById = User.FindFirstValue(ClaimTypes.NameIdentifier), 
+            SubmittedById = userid, 
             SubmittedAt = DateTime.UtcNow,
             Answers = model.Answers.Select(a => new AnswerEntity
             {

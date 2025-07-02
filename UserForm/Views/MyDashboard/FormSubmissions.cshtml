@@ -1,0 +1,47 @@
+@model ReflectionIT.Mvc.Paging.PagingList<UserForm.Models.DBModels.Forms.FormResponse>
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Form Submissions";
+
+    var questions = ViewBag.Questions as List<UserForm.Models.DBModels.Question.QuestionEntity>;
+    var formTitle = ViewBag.FormTitle as string;
+    var formId = (int)ViewBag.FormId;
+}
+
+<h2 class="mb-4">Submissions for <span class="text-primary">@formTitle</span></h2>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">No submissions yet.</div>
+}
+else
+{
+    <table class="table table-bordered">
+        <thead class="table-light">
+        <tr>
+            <th>#</th>
+            <th>Submitted By</th>
+            <th>Submitted At</th>
+            <th>Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var submission in Model)
+        {
+            <tr>
+                <td>@submission.Id</td>
+                <td>@submission.SubmittedBy.Email</td>
+                <td>@submission.SubmittedAt.ToString("g")</td>
+                <td>
+                    <a class="btn btn-sm btn-outline-primary"
+                       href="@Url.Action("EditSubmission", "MyDashboard", new { responseId = submission.Id })">
+                        Edit
+                    </a>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+
+    <partial name="_Paging" for="@Model" />
+}
