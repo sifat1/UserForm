@@ -4,9 +4,10 @@
     ViewData["Title"] = "User Management";
 }
 
-<h2>User Management</h2>
+<h4>User Management</h4>
 
-<form method="post" asp-action="/Admin/BulkAction">
+<form method="post" action="/Admin/BulkAction">
+
     <table class="table table-bordered">
         <thead>
         <tr>
@@ -23,9 +24,18 @@
                 <td>
                     <input type="checkbox" name="SelectedUserIds" value="@Model.Users[i].UserId" class="user-checkbox" />
                 </td>
-                <td>@Model.Users[i].Email</td>
+                <td>    
+                    @if (Model.Users[i].IsBlocked)
+                        {
+                            <span style="text-decoration: line-through;">@Model.Users[i].Email</span>
+                        }
+                        else
+                        {
+                            @Model.Users[i].Email
+                        }
+                    </td>
                 <td>@(Model.Users[i].IsAdmin ? "Yes" : "No")</td>
-                <td>@(Model.Users[i].IsLockedOut ? "Blocked" : "Active")</td>
+                <td>@(Model.Users[i].IsBlocked ? "Blocked" : "Active")</td>
             </tr>
         }
         </tbody>

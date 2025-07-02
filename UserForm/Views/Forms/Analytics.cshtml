@@ -8,19 +8,32 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+
 <div class="container py-5">
-    <div class="card bg-light shadow-sm border-0 mb-5">
+
+    <div class="card shadow-sm mb-5 border-0">
         <div class="card-body">
-            <h2 class="text-dark fw-bold mb-3"> Analytics for <span class="text-primary">@Model.FormTitle</span></h2>
-            <div class="row">
-                <div class="col-md-4">
-                    <p><strong> Topic:</strong> <span class="text-muted">@Model.FormTopic</span></p>
+            <h4 class="fw-bold mb-4">
+                Analytics for <span class="text-primary">@Model.FormTitle</span>
+            </h4>
+            <div class="row text-center">
+                <div class="col-md-4 mb-3">
+                    <div class="p-3 bg-light rounded">
+                        <h5 class="text-secondary">Topic</h5>
+                        <p class="mb-0 fs-5">@Model.FormTopic</p>
+                    </div>
                 </div>
-                <div class="col-md-4">
-                    <p><strong> Total Questions:</strong> <span class="text-muted">@Model.Questions.Count</span></p>
+                <div class="col-md-4 mb-3">
+                    <div class="p-3 bg-light rounded">
+                        <h5 class="text-secondary">Total Questions</h5>
+                        <p class="mb-0 fs-5">@Model.Questions.Count</p>
+                    </div>
                 </div>
-                <div class="col-md-4">
-                    <p><strong> Total Responses:</strong> <span class="text-muted">@Model.TotalResponses</span></p>
+                <div class="col-md-4 mb-3">
+                    <div class="p-3 bg-light rounded">
+                        <h5 class="text-secondary">Total Responses</h5>
+                        <p class="mb-0 fs-5">@Model.TotalResponses</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -28,61 +41,73 @@
 
     @foreach (var q in Model.Questions)
     {
-        var id = $"chart{chartIndex++}";
-        <div class="card border-start border-4 border-primary shadow-sm mb-4">
+        var chartId = $"chart{chartIndex++}";
+        <div class="card mb-4 shadow-sm" tabindex="0">
             <div class="card-body">
-                <h5 class="card-title">@q.QuestionText</h5>
-                <p class="text-muted mb-3">Type: <span class="badge bg-secondary">@q.QuestionType</span></p>
+                <h5 class="card-title fw-semibold">@q.QuestionText</h5>
+                <p class="text-muted mb-3">
+                    Type: <span class="badge bg-secondary">@q.QuestionType</span>
+                </p>
 
                 @if (q.QuestionType == "Number")
                 {
-                    <p><strong> Average value:</strong> <span class="text-success">@((q.AverageNumberAnswer?.ToString("F2")) ?? "N/A")</span></p>
+                    <p class="fs-5 text-success">
+                        <strong>Average value:</strong>
+                        @((q.AverageNumberAnswer.HasValue) ? q.AverageNumberAnswer.Value.ToString("F2") : "N/A")
+                    </p>
                 }
                 else if (q.QuestionType == "MultipleChoice")
                 {
-                    <canvas id="@id" height="200"></canvas>
+                    <canvas id="@chartId" height="200" class="mb-3"></canvas>
 
                     <script>
-                        const ctx@chartIndex = document.getElementById('@id').getContext('2d');
-                        new Chart(ctx@chartIndex, {
-                            type: 'bar',
-                            data: {
-                                labels: [@string.Join(",", q.OptionFrequency.Keys.Select(k => $"'{k}'"))],
-                                datasets: [{
-                                    label: 'Responses',
-                                    data: [@string.Join(",", q.OptionFrequency.Values)],
-                                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
-                                    borderColor: 'rgba(54, 162, 235, 1)',
-                                    borderWidth: 1
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                scales: {
-                                    y: {
-                                        beginAtZero: true,
-                                        ticks: {
-                                            stepSize: 1
+                        document.addEventListener('DOMContentLoaded', function () {
+                            try {
+                                const ctx = document.getElementById('@chartId').getContext('2d');
+                                new Chart(ctx, {
+                                    type: 'bar',
+                                    data: {
+                                        labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(q.OptionFrequency.Keys.ToList())),
+                                        datasets: [{
+                                            label: 'Responses',
+                                            data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(q.OptionFrequency.Values.ToList())),
+                                            backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                                            borderColor: 'rgba(54, 162, 235, 1)',
+                                            borderWidth: 1,
+                                            borderRadius: 4,
+                                            maxBarThickness: 40
+                                        }]
+                                    },
+                                    options: {
+                                        responsive: true,
+                                        scales: {
+                                            y: {
+                                                beginAtZero: true,
+                                                ticks: {
+                                                    stepSize: 1
+                                                }
+                                            }
+                                        },
+                                        plugins: {
+                                            legend: { display: false },
+                                            tooltip: { enabled: true }
                                         }
                                     }
-                                },
-                                plugins: {
-                                    legend: {
-                                        display: false
-                                    },
-                                    title: {
-                                        display: false
-                                    }
-                                }
+                                });
+                            } catch (e) {
+                                console.error('Error rendering chart:', e);
                             }
                         });
                     </script>
                 }
                 else if (q.QuestionType == "Text")
                 {
-                    <p><strong> Total text responses:</strong> @q.OptionFrequency.Values.Sum()</p>
+                    <p class="fs-6 text-muted">
+                        <strong>Total text responses:</strong> @q.OptionFrequency.Values.Sum()
+                    </p>
                 }
             </div>
         </div>
     }
+
 </div>

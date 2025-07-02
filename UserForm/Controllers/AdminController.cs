@@ -6,25 +6,33 @@ using UserForm.ViewModels.Admin;
 
 namespace UserForm.Controllers;
 
-
 [Authorize(Roles = "Admin")]
-public class AdminController(UserManager<UserDetails> userManager) : Controller
+public class AdminController : Controller
 {
+    private readonly UserManager<UserDetails> _userManager;
+
+    public AdminController(UserManager<UserDetails> userManager)
+    {
+        _userManager = userManager;
+    }
+
     [HttpGet]
     public async Task<IActionResult> Admin()
     {
-        var users = userManager.Users.ToList();
+        var users = _userManager.Users.ToList();
         var model = new AdminUserManagementViewModel();
 
         foreach (var user in users)
         {
-            var roles = await userManager.GetRolesAsync(user);
+            var userDetails = await _userManager.FindByIdAsync(user.Id);
+            var roles = await _userManager.GetRolesAsync(user);
             model.Users.Add(new AdminUserViewModel
             {
                 UserId = user.Id,
                 Email = user.Email,
                 IsAdmin = roles.Contains("Admin"),
-                IsLockedOut = await userManager.IsLockedOutAsync(user)
+                IsLockedOut = await _userManager.IsLockedOutAsync(user),
+                IsBlocked = userDetails?.IsBlocked ?? false
             });
         }
 
@@ -33,7 +41,7 @@ public class AdminController(UserManager<UserDetails> userManager) : Controller
 
     [HttpPost]
     public async Task<IActionResult> BulkAction(
-        [FromForm]List<string> SelectedUserIds, 
+        [FromForm] List<string> SelectedUserIds,
         [FromForm] string actionType)
     {
         if (SelectedUserIds == null || !SelectedUserIds.Any())
@@ -44,26 +52,26 @@ public class AdminController(UserManager<UserDetails> userManager) : Controller
 
         foreach (var userId in SelectedUserIds)
         {
-            var user = await userManager.FindByIdAsync(userId);
+            var user = await _userManager.FindByIdAsync(userId);
             if (user == null) continue;
 
             switch (actionType)
             {
                 case "block":
                     user.IsBlocked = true;
-                    await userManager.UpdateAsync(user);
+                    await _userManager.UpdateAsync(user);
                     break;
                 case "unblock":
                     user.IsBlocked = false;
-                    await userManager.UpdateAsync(user);
+                    await _userManager.UpdateAsync(user);
                     break;
                 case "makeAdmin":
-                    if (!await userManager.IsInRoleAsync(user, "Admin"))
-                        await userManager.AddToRoleAsync(user, "Admin");
+                    if (!await _userManager.IsInRoleAsync(user, "Admin"))
+                        await _userManager.AddToRoleAsync(user, "Admin");
                     break;
                 case "removeAdmin":
-                    if (await userManager.IsInRoleAsync(user, "Admin"))
-                        await userManager.RemoveFromRoleAsync(user, "Admin");
+                    if (await _userManager.IsInRoleAsync(user, "Admin"))
+                        await _userManager.RemoveFromRoleAsync(user, "Admin");
                     break;
             }
         }
