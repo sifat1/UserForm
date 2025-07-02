@@ -529,7 +529,7 @@ namespace UserForm.Migrations
             modelBuilder.Entity("UserForm.Models.DBModels.Forms.CommentEntity", b =>
                 {
                     b.HasOne("UserForm.Models.DBModels.Forms.FormEntity", "Form")
-                        .WithMany()
+                        .WithMany("Comments")
                         .HasForeignKey("FormId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -631,6 +631,8 @@ namespace UserForm.Migrations
 
             modelBuilder.Entity("UserForm.Models.DBModels.Forms.FormEntity", b =>
                 {
+                    b.Navigation("Comments");
+
                     b.Navigation("Questions");
 
                     b.Navigation("Responses");

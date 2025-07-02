@@ -31,9 +31,12 @@ public class FormManageController(AppDbContext context) : Controller
             var tsQuery = EF.Functions.PlainToTsQuery("english", searchQuery);
     
             query = query
-                .Where(f => f.FormSearchVector.Matches(tsQuery))
-                .OrderByDescending(f => EF.Functions.ToTsVector("english", f.FormTitle)
-                    .Rank(EF.Functions.ToTsQuery("english", searchQuery)));
+                .Where(f => 
+                    EF.Functions.ToTsVector("english", f.FormTitle + " " + f.Description + " " + f.Comments)
+                        .Matches(tsQuery))
+                .OrderByDescending(f => 
+                    EF.Functions.ToTsVector("english", f.FormTitle + " " + f.Description + " " + f.Comments)
+                        .Rank(tsQuery));
         }
 
         
@@ -107,25 +110,6 @@ public class FormManageController(AppDbContext context) : Controller
         return !string.IsNullOrEmpty(returnUrl) ? Redirect(returnUrl) : RedirectToAction("List");
     }
     
-    
-    [HttpPost]
-    [Authorize]
-    public async Task<IActionResult> Comment(int formId, string content)
-    {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (!string.IsNullOrWhiteSpace(content))
-        {
-            var comment = new CommentEntity
-            {
-                FormId = formId,
-                UserId = userId,
-                Content = content
-            };
-            context.Comments.Add(comment);
-            await context.SaveChangesAsync();
-        }
-        return RedirectToAction("List"); 
-    }
     
     public async Task<List<FormCardViewModel>> GetTopTemplatesAsync()
     {

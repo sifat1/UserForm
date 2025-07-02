@@ -94,9 +94,8 @@ public class FormsController(AppDbContext context) : Controller
     {
         var form = await GetFormWithDetailsAsync(id);
         if (form == null) return NotFound();
-        if (!UserOwnsForm(form) && User.IsInRole("Admin")) return Unauthorized();
 
-        return View(MapEntityToDto(form));
+        return User.IsInRole("Admin") || UserOwnsForm(form) ? View(MapEntityToDto(form)): Unauthorized();
     }
 
     [HttpPost]
@@ -105,21 +104,24 @@ public class FormsController(AppDbContext context) : Controller
         if (!ModelState.IsValid) return View(dto);
 
         var form = await GetFormWithDetailsAsync(dto.Id ?? 0);
-        if (form == null || !UserOwnsForm(form)) return Unauthorized();
+        if (form != null && (User.IsInRole("Admin") || UserOwnsForm(form)))
+        {
+            form.FormTitle = dto.FormTitle;
+            form.Description = dto.FormDescription;
+            form.FormTopic = dto.FormTopic;
+            form.Tags = dto.Tags;
+            form.IsPublic = dto.IsPublic;
 
-        form.FormTitle = dto.FormTitle;
-        form.Description = dto.FormDescription;
-        form.FormTopic = dto.FormTopic;
-        form.Tags = dto.Tags;
-        form.IsPublic = dto.IsPublic;
+            context.Options.RemoveRange(form.Questions.SelectMany(q => q.Options));
+            context.Questions.RemoveRange(form.Questions);
 
-        context.Options.RemoveRange(form.Questions.SelectMany(q => q.Options));
-        context.Questions.RemoveRange(form.Questions);
+            form.Questions = MapDtoToEntity(dto).Questions;
 
-        form.Questions = MapDtoToEntity(dto).Questions;
+            await context.SaveChangesAsync();
+            return RedirectToAction("Edit", new { id = form.Id });
+        }
 
-        await context.SaveChangesAsync();
-        return RedirectToAction("Edit", new { id = form.Id });
+        return Unauthorized();
     }
 
     [HttpGet]

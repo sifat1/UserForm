@@ -13,6 +13,8 @@ namespace UserForm.Controllers;
 
 public class UserDatatoFormsController(AppDbContext context) : Controller
 {
+    private string GetUserId() => User.FindFirstValue(ClaimTypes.NameIdentifier);
+    
     [HttpGet]
     public async Task<IActionResult> Submit(int id)
     {
@@ -39,12 +41,22 @@ public class UserDatatoFormsController(AppDbContext context) : Controller
             Answers = form.Questions.Select(q => new AnswerInputModel
             {
                 QuestionId = q.Id
-            }).ToList() 
+            }).ToList(),
+            Comments = await context.Comments
+                .Where(c => c.FormId == id)
+                .Include(c => c.User)
+                .OrderByDescending(c => c.CreatedAt)
+                .Select(c => new CommentDisplayViewModel
+                {
+                    Email = c.User.Email,
+                    Content = c.Content,
+                    CreatedAt = c.CreatedAt
+                })
+                .ToListAsync()
         };
-
+    
         return View(model);
     }
-
 
     [HttpPost]
     [Authorize]
@@ -80,6 +92,43 @@ public class UserDatatoFormsController(AppDbContext context) : Controller
 
         return RedirectToAction("List", "FormManage"); 
     }
-
     
+    [HttpPost]
+    [Authorize]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> PostComment(
+        [FromForm] int FormId,
+        [FromForm] string Content,
+        [FromForm] string returnUrl)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(Content))
+            {
+                ModelState.AddModelError("Content", "Comment cannot be empty");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return Redirect(returnUrl);
+            }
+
+            var comment = new CommentEntity
+            {
+                FormId = FormId,
+                Content = Content.Trim(),
+                UserId = GetUserId(),
+                CreatedAt = DateTime.UtcNow
+            };
+
+            context.Comments.Add(comment);
+            await context.SaveChangesAsync();
+
+            return Redirect(returnUrl);
+        }
+        catch (Exception ex)
+        {
+            return Redirect(returnUrl);
+        }
+    }
 }

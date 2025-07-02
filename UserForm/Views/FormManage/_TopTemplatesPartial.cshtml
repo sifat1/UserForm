@@ -19,7 +19,7 @@
                                         ❤️ Like (@form.LikeCount)
                                     </button>
                                 </form>
-                                @if (form.IsPublic)
+                                @if (form.IsPublic && User.Identity.IsAuthenticated)
                                 {
                                     <a class="btn btn-sm btn-outline-primary"
                                        href="@Url.Action("CreateFromTemplate", "Forms", new { id = form.Id })">

@@ -1,11 +1,13 @@
 @model UserForm.ViewModels.usersubmitformdata.SubmitFormViewModel
 
+
 @{
     Layout = "_Layout";
     ViewData["Title"] = "Submit Form";
+    var comments = ViewData["Comments"] as List<UserForm.ViewModels.usersubmitformdata.CommentDisplayViewModel> ?? new();
 }
 
-<h2>@Model.FormTitle</h2>
+<h5>@Model.FormTitle @( User.Identity.IsAuthenticated ? "" : " (Read Only Mode)")</h5>
 <p><strong>Topic:</strong> @Model.FormTopic</p>
 
 <form method="post" asp-action="Submit" asp-controller="UserDatatoForms">
@@ -14,34 +16,67 @@
 
     @for (int i = 0; i < Model.Questions.Count; i++)
     {
-        var q = Model.Questions[i];
-        <div class="mb-3">
+    var q = Model.Questions[i];
+    <div class="mb-3">
             <label class="form-label"><strong>@q.QuestionText</strong></label>
 
             <input type="hidden" name="Answers[@i].QuestionId" value="@q.QuestionId"/>
 
             @if (q.QuestionType == "Text")
-            {
-                <textarea class="form-control" name="Answers[@i].TextAnswer" rows="3" required></textarea>
-            }
-            else if (q.QuestionType == "Number")
-            {
-                <input type="number" class="form-control" name="Answers[@i].NumberAnswer" required/>
-            }
-            else if (q.QuestionType == "MultipleChoice" && q.Options?.Any() == true)
-            {
-                foreach (var option in q.Options)
-                {
-                    <div class="form-check">
+    {
+        <textarea class="form-control" name="Answers[@i].TextAnswer" rows="3" required></textarea>
+    }
+    else if (q.QuestionType == "Number")
+    {
+        <input type="number" class="form-control" name="Answers[@i].NumberAnswer" required/>
+    }
+    else if (q.QuestionType == "MultipleChoice" && q.Options?.Any() == true)
+    {
+        foreach (var option in q.Options)
+        {
+            <div class="form-check">
                         <input type="radio" class="form-check-input"
                                name="Answers[@i].SelectedOption"
                                value="@option" required/>
                         <label class="form-check-label">@option</label>
                     </div>
-                }
-            }
+        }
+    }
         </div>
+}
+
+    @if (User.Identity.IsAuthenticated)
+    {
+        <button type="submit" class="btn btn-primary">Submit</button>
+    }
+    else
+    {
+        @Html.Partial("_Warning",ViewData["ad"]= " to Submit")
+    }
+</form>
+
+<div class="mt-5">
+    <h4>Comments</h4>
+@if (User.Identity.IsAuthenticated)
+    {
+        <form action="/UserDatatoForms/PostComment" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="FormId" value="@Model.FormId"/>
+            <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString"/>
+
+            <div class="mb-3">
+                <label asp-for="Content" class="form-label"></label>
+                <textarea name="Content" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="Content" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-secondary">Add Comment</button>
+        </form>
+    }
+    else
+    {
+        @Html.Partial("_Warning",ViewData["ad"]= " to Add Comment")
     }
 
-    <button type="submit" class="btn btn-primary">Submit</button>
-</form>
+    @Html.Partial("_CommentListPartial",Model.Comments)
+</div>

@@ -25,8 +25,6 @@
     <meta charset="utf-8" />
     <title>@ViewData["Title"] - @Localizer["AppName"]</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    
-    <!-- Theme link with ID for switching -->
     <link id="bootstrap-theme" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/flatly/bootstrap.min.css" rel="stylesheet" />
 
     <style>
@@ -82,20 +80,14 @@
                         </li>
                     }
                 </ul>
-
-                <!-- Search bar -->
                 <form class="d-flex me-2" method="get" asp-controller="FormManage" asp-action="List">
                     <input class="form-control me-2" type="search" name="search" placeholder="@Localizer["SearchPlaceholder"]" />
                     <button class="btn btn-outline-light" type="submit">@Localizer["Search"]</button>
                 </form>
-
-                <!-- Theme switch toggle -->
                 <div class="form-check form-switch text-light me-3">
                     <input class="form-check-input" type="checkbox" id="themeToggle">
                     <label class="form-check-label" for="themeToggle">Dark Mode</label>
                 </div>
-
-                <!-- Language selector -->
                 <form id="cultureForm" asp-controller="FormManage" asp-action="SetLanguage"
                       asp-route-returnUrl="@returnUrl" method="post" class="language-switcher">
                     <select name="culture" onchange="this.form.submit()" class="form-select bg-dark text-white border-light">
@@ -117,18 +109,12 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     @RenderSection("Scripts", required: false)
-
-    <!-- Theme switching script -->
     <script>
         const toggle = document.getElementById("themeToggle");
         const themeLink = document.getElementById("bootstrap-theme");
-
-        // Load saved theme
         const savedTheme = localStorage.getItem("theme") || "flatly";
         themeLink.href = `https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/${savedTheme}/bootstrap.min.css`;
         toggle.checked = savedTheme === "darkly";
-
-        // Toggle theme and save
         toggle.addEventListener("change", () => {
             const selectedTheme = toggle.checked ? "darkly" : "flatly";
             themeLink.href = `https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/${selectedTheme}/bootstrap.min.css`;
