@@ -23,8 +23,9 @@
 
     <div class="mb-3">
         <label class="form-label">Tags</label>
-        <div class="border p-2" id="tag-container" style="min-height: 40px;">
-            <input type="text" id="tag-input" class="border-0" style="outline: none;" placeholder="Type tag and press Enter" />
+        <div class="border p-2 d-flex flex-wrap align-items-center gap-1" id="tag-container" style="min-height: 40px;">
+            <div id="tag-list" class="d-flex flex-wrap gap-1"></div>
+            <input type="text" id="tag-input" class="border-0" style="outline: none; flex-grow: 1; min-width: 150px;" placeholder="Type tag and press Enter or comma" />
         </div>
         <input type="hidden" name="Tags" id="Tags" value="@Model?.Tags" />
     </div>

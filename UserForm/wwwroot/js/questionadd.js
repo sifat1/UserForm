@@ -60,20 +60,22 @@ function deleteSelectedOptions(questionIdx) {
 
 // Tag management
 function updateTagUI() {
-    const tagContainer = document.getElementById("tag-container");
-    const tagInput = document.getElementById("tag-input");
+    const tagList = document.getElementById("tag-list");
     const hiddenInput = document.getElementById("Tags");
 
-    if (!tagContainer || !tagInput || !hiddenInput) return;
+    if (!tagList || !hiddenInput) return;
 
-    tagContainer.innerHTML = '';
+    tagList.innerHTML = '';
     tags.forEach((tag, index) => {
         const tagEl = document.createElement("span");
-        tagEl.className = "badge bg-primary me-1 mb-1";
-        tagEl.innerHTML = `${tag} <button type="button" class="btn-close btn-close-white btn-sm ms-1" onclick="formBuilder.removeTag(${index})"></button>`;
-        tagContainer.appendChild(tagEl);
+        tagEl.className = "badge bg-primary d-flex align-items-center px-2 me-1 mb-1";
+        tagEl.innerHTML = `
+            ${tag}
+            <button type="button" class="btn-close btn-close-white btn-sm ms-2" onclick="formBuilder.removeTag(${index})"></button>
+        `;
+        tagList.appendChild(tagEl);
     });
-    tagContainer.appendChild(tagInput);
+
     hiddenInput.value = tags.join(",");
 }
 
