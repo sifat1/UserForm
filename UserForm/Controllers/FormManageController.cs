@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore;
 using UserForm.Models.DBModels;
 using UserForm.Models.DBModels.Forms;
 using UserForm.ViewModels.FormManage;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 
 namespace UserForm.Controllers;
 
@@ -25,21 +27,36 @@ public class FormManageController(AppDbContext context) : Controller
 
         if (!string.IsNullOrEmpty(tag))
             query = query.Where(f => f.Tags.Contains(tag));
-
+        
         if (!string.IsNullOrEmpty(searchQuery))
         {
-            var tsQuery = EF.Functions.PlainToTsQuery("english", searchQuery);
-    
-            query = query
-                .Where(f => 
-                    EF.Functions.ToTsVector("english", f.FormTitle + " " + f.Description + " " + f.Comments)
-                        .Matches(tsQuery))
-                .OrderByDescending(f => 
-                    EF.Functions.ToTsVector("english", f.FormTitle + " " + f.Description + " " + f.Comments)
-                        .Rank(tsQuery));
-        }
+            var formIds = await context.Database
+                .SqlQuery<int>($"""
+                                WITH ranked_forms AS (
+                                    SELECT 
+                                        f."Id",
+                                        ts_rank(f."FormSearchVector", plainto_tsquery('english', {searchQuery})) +
+                                        COALESCE((
+                                            SELECT SUM(ts_rank(c."CommentSearchVector", plainto_tsquery('english', {searchQuery})))
+                                            FROM "Comments" c
+                                            WHERE c."FormId" = f."Id"
+                                        ), 0) AS total_rank
+                                    FROM "Forms" f
+                                    WHERE 
+                                        f."FormSearchVector" @@ plainto_tsquery('english', {searchQuery}) OR
+                                        EXISTS (
+                                            SELECT 1 FROM "Comments" c
+                                            WHERE c."FormId" = f."Id" AND
+                                            c."CommentSearchVector" @@ plainto_tsquery('english', {searchQuery})
+                                        )
+                                    ORDER BY total_rank DESC
+                                )
+                                SELECT "Id" FROM ranked_forms
+                                """)
+                .ToListAsync();
 
-        
+            query = query.Where(f => formIds.Contains(f.Id));
+        }
         int totalCount = await query.CountAsync();
         int totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
         

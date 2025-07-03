@@ -25,13 +25,24 @@ public class AppDbContext : IdentityDbContext<UserDetails, IdentityRole, string>
     {
         base.OnModelCreating(modelBuilder);
         
+        
         modelBuilder.Entity<FormEntity>()
             .HasGeneratedTsVectorColumn(
                 f => f.FormSearchVector,
                 "english", 
-                f => new { f.Description, f.FormTitle }
+                f => new { f.Description, f.FormTitle, f.Tags } 
             )
             .HasIndex(f => f.FormSearchVector)
+            .HasMethod("GIN");
+
+        
+        modelBuilder.Entity<CommentEntity>()
+            .HasGeneratedTsVectorColumn(
+                c => c.CommentSearchVector,
+                "english", 
+                c => new { c.Content }
+            )
+            .HasIndex(c => c.CommentSearchVector)
             .HasMethod("GIN");
         
         modelBuilder.Entity<FormEntity>()
@@ -68,14 +79,5 @@ public class AppDbContext : IdentityDbContext<UserDetails, IdentityRole, string>
         modelBuilder.Entity<LikeEntity>()
             .HasIndex(l => new { l.UserId, l.FormId })
             .IsUnique(); 
-        
-        modelBuilder.Entity<CommentEntity>()
-            .HasGeneratedTsVectorColumn(
-                c => c.CommentSearchVector,
-                "english", 
-                c => new { c.Content } 
-            )
-            .HasIndex(c => c.CommentSearchVector)
-            .HasMethod("GIN");
     }
 }

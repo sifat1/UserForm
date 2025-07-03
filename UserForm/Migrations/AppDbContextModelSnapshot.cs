@@ -155,32 +155,6 @@ namespace UserForm.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("QuestionEntity", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("FormId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("QuestionText")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("QuestionType")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("FormId");
-
-                    b.ToTable("Questions");
-                });
-
             modelBuilder.Entity("UserForm.Models.DBModels.Forms.CommentEntity", b =>
                 {
                     b.Property<int>("Id")
@@ -242,7 +216,7 @@ namespace UserForm.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("tsvector")
                         .HasAnnotation("Npgsql:TsVectorConfig", "english")
-                        .HasAnnotation("Npgsql:TsVectorProperties", new[] { "Description", "FormTitle" });
+                        .HasAnnotation("Npgsql:TsVectorProperties", new[] { "Description", "FormTitle", "Tags" });
 
                     b.Property<string>("FormTitle")
                         .IsRequired()
@@ -390,6 +364,32 @@ namespace UserForm.Migrations
                     b.ToTable("Options");
                 });
 
+            modelBuilder.Entity("UserForm.Models.DBModels.Question.QuestionEntity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("FormId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("QuestionText")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("QuestionType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FormId");
+
+                    b.ToTable("Questions");
+                });
+
             modelBuilder.Entity("UserForm.Models.DBModels.Users.UserDetails", b =>
                 {
                     b.Property<string>("Id")
@@ -515,17 +515,6 @@ namespace UserForm.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("QuestionEntity", b =>
-                {
-                    b.HasOne("UserForm.Models.DBModels.Forms.FormEntity", "Form")
-                        .WithMany("Questions")
-                        .HasForeignKey("FormId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Form");
-                });
-
             modelBuilder.Entity("UserForm.Models.DBModels.Forms.CommentEntity", b =>
                 {
                     b.HasOne("UserForm.Models.DBModels.Forms.FormEntity", "Form")
@@ -600,7 +589,7 @@ namespace UserForm.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("QuestionEntity", "Question")
+                    b.HasOne("UserForm.Models.DBModels.Question.QuestionEntity", "Question")
                         .WithMany("Answers")
                         .HasForeignKey("QuestionId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -613,7 +602,7 @@ namespace UserForm.Migrations
 
             modelBuilder.Entity("UserForm.Models.DBModels.Question.OptionEntity", b =>
                 {
-                    b.HasOne("QuestionEntity", "Question")
+                    b.HasOne("UserForm.Models.DBModels.Question.QuestionEntity", "Question")
                         .WithMany("Options")
                         .HasForeignKey("QuestionId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -622,11 +611,15 @@ namespace UserForm.Migrations
                     b.Navigation("Question");
                 });
 
-            modelBuilder.Entity("QuestionEntity", b =>
+            modelBuilder.Entity("UserForm.Models.DBModels.Question.QuestionEntity", b =>
                 {
-                    b.Navigation("Answers");
+                    b.HasOne("UserForm.Models.DBModels.Forms.FormEntity", "Form")
+                        .WithMany("Questions")
+                        .HasForeignKey("FormId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Navigation("Options");
+                    b.Navigation("Form");
                 });
 
             modelBuilder.Entity("UserForm.Models.DBModels.Forms.FormEntity", b =>
@@ -641,6 +634,13 @@ namespace UserForm.Migrations
             modelBuilder.Entity("UserForm.Models.DBModels.Forms.FormResponse", b =>
                 {
                     b.Navigation("Answers");
+                });
+
+            modelBuilder.Entity("UserForm.Models.DBModels.Question.QuestionEntity", b =>
+                {
+                    b.Navigation("Answers");
+
+                    b.Navigation("Options");
                 });
 #pragma warning restore 612, 618
         }

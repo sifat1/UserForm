@@ -24,5 +24,7 @@ public class FormEntity
     public ICollection<QuestionEntity> Questions { get; set; } = new List<QuestionEntity>();
     public ICollection<FormResponse> Responses { get; set; } = new List<FormResponse>();
     public ICollection<CommentEntity> Comments { get; set; } = new List<CommentEntity>();
+    
+    [Column(TypeName = "tsvector")] 
     public NpgsqlTsVector FormSearchVector { get; set; }
 }
