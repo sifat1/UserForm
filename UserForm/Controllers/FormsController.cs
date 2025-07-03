@@ -15,6 +15,24 @@ namespace UserForm.Controllers;
 public class FormsController(AppDbContext context) : Controller
 {
     private string GetUserId() => User.FindFirstValue(ClaimTypes.NameIdentifier);
+    private bool HasTooManyOfSameQuestionType(List<QuestionDto> questions, out string errorMessage)
+    {
+        var typeGroups = questions
+            .GroupBy(q => q.QuestionType)
+            .ToDictionary(g => g.Key, g => g.Count());
+
+        foreach (var (type, count) in typeGroups)
+        {
+            if (count > 4)
+            {
+                errorMessage = $"You cannot have more than 4 questions of type '{type}'.";
+                return true;
+            }
+        }
+
+        errorMessage = "";
+        return false;
+    }
 
     private List<string> GetTopics() =>
         context.Topics.Select(f => f.TopicName).Distinct().ToList();
@@ -76,19 +94,29 @@ public class FormsController(AppDbContext context) : Controller
         });
     }
 
+    
     [HttpPost]
     public async Task<IActionResult> Create(CreateFormDto dto)
     {
-        if (!ModelState.IsValid)
+        if (HasTooManyOfSameQuestionType(dto.Questions, out var errorMessage))
+        {
+            TempData["ErrorMessage"] = errorMessage;
+            dto.Topics = GetTopics();
             return View(dto);
+        }
+
+        if (!ModelState.IsValid)
+        {
+            dto.Topics = GetTopics();
+            return View(dto);
+        }
 
         context.Forms.Add(MapDtoToEntity(dto));
         await context.SaveChangesAsync();
-
-        var savedId = context.Forms.OrderByDescending(f => f.Id).First().Id;
         TempData["SuccessMessage"] = "Form created successfully!";
         return RedirectToAction("MyForms", "MyDashboard");
     }
+
 
     [HttpGet]
     public async Task<IActionResult> Edit(int id)

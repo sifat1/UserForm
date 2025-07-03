@@ -1,8 +1,8 @@
-// Shared variables
+
 let questionIndex = 0;
 let tags = [];
 
-// Question template creation
+
 function createQuestionBlock(index) {
     return `
         <div class="question-block mb-4 p-3 border rounded" data-index="${index}">
@@ -26,7 +26,7 @@ function createQuestionBlock(index) {
         </div>`;
 }
 
-// Question management
+
 function addQuestion() {
     const container = document.getElementById("questions-container");
     if (!container) return;
@@ -34,7 +34,7 @@ function addQuestion() {
     questionIndex++;
 }
 
-// Option management
+
 function addOptionField(questionIdx) {
     const optionsDiv = document.getElementById(`option-list-${questionIdx}`);
     if (!optionsDiv) return;
@@ -58,7 +58,7 @@ function deleteSelectedOptions(questionIdx) {
     );
 }
 
-// Tag management
+
 function updateTagUI() {
     const tagList = document.getElementById("tag-list");
     const hiddenInput = document.getElementById("Tags");
@@ -84,7 +84,7 @@ function removeTag(index) {
     updateTagUI();
 }
 
-// Event handlers
+
 function setupQuestionTypeChangeHandler() {
     document.addEventListener("change", function (e) {
         if (e.target.classList.contains("question-type")) {
@@ -111,7 +111,7 @@ function setupQuestionTypeChangeHandler() {
     });
 }
 
-// Initialize form with existing data
+
 function initializeForm(questions, initialTags) {
     questions.forEach((q, i) => {
         const container = document.getElementById("questions-container");
