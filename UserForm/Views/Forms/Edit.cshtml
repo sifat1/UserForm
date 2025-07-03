@@ -12,34 +12,54 @@
 @section Scripts {
     <script src="~/js/questionadd.js" asp-append-version="true"></script>
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function () {
+            window.tags = [];
+            
+            const initialTags = "@(Model.Tags ?? "")"
+                .split(',')
+                .map(t => t.trim())
+                .filter(t => t.length > 0);
+
+            const modelQuestions = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Questions ?? new List<UserForm.DTOS.QuestionDto>()));
+            
+            const originalUpdateTagUI = formBuilder.updateTagUI;
+            formBuilder.updateTagUI = function() {
+                originalUpdateTagUI.apply(formBuilder);
+                window.tags = formBuilder.tags || [];
+            };
+
+            formBuilder.initializeForm(modelQuestions, initialTags);
+            window.tags = initialTags;
+
             const tagInput = document.getElementById("tag-input");
             if (tagInput) {
-                tagInput.addEventListener("keydown", function(e) {
+                tagInput.addEventListener("keydown", function (e) {
                     if (e.key === "Enter" || e.key === ",") {
                         e.preventDefault();
-                        const value = e.target.value.trim().replace(",", "");
-                        if (value && !formBuilder.tags.includes(value)) {
-                            formBuilder.tags.push(value);
+                        const value = e.target.value.trim();
+                        if (value && !window.tags.includes(value)) {
+                            window.tags.push(value);
+                            formBuilder.tags = window.tags;
                             e.target.value = '';
                             formBuilder.updateTagUI();
                         }
                     }
                 });
             }
+            formBuilder.removeTag = function(index) {
+                window.tags.splice(index, 1);
+                formBuilder.tags = window.tags;
+                formBuilder.updateTagUI();
+            };
 
             document.getElementById("add-question")?.addEventListener("click", formBuilder.addQuestion);
-            document.getElementById("delete-selected")?.addEventListener("click", function() {
+            document.getElementById("delete-selected")?.addEventListener("click", function () {
                 document.querySelectorAll(".delete-checkbox:checked").forEach(cb =>
-                    cb.closest(".question-block").remove()
+                    cb.closest(".question-block")?.remove()
                 );
             });
 
             formBuilder.setupQuestionTypeChangeHandler();
-
-            const modelQuestions = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Questions ?? []));
-            const initialTags = ("@Model.Tags" || "").split(',').map(t => t.trim()).filter(t => t.length > 0);
-            formBuilder.initializeForm(modelQuestions, initialTags);
         });
     </script>
 }
