@@ -10,8 +10,9 @@ namespace UserForm.Controllers;
 public class AdminController : Controller
 {
     private readonly UserManager<UserDetails> _userManager;
+    private SignInManager<UserDetails> _signInManager;
 
-    public AdminController(UserManager<UserDetails> userManager)
+    public AdminController(UserManager<UserDetails> userManager,SignInManager<UserDetails> signInManager)
     {
         _userManager = userManager;
     }
@@ -49,9 +50,11 @@ public class AdminController : Controller
             TempData["ErrorMessage"] = "No users selected";
             return RedirectToAction("Admin");
         }
-
+        
+        var currentUserEmail = User.Identity?.Name;
         foreach (var userId in SelectedUserIds)
         {
+            
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null) continue;
 
@@ -60,6 +63,11 @@ public class AdminController : Controller
                 case "block":
                     user.IsBlocked = true;
                     await _userManager.UpdateAsync(user);
+                    if(currentUserEmail == user.Email)
+                    {
+                        await _signInManager.SignOutAsync();
+                    }
+                    await _userManager.UpdateSecurityStampAsync(user);
                     break;
                 case "unblock":
                     user.IsBlocked = false;
@@ -72,6 +80,12 @@ public class AdminController : Controller
                 case "removeAdmin":
                     if (await _userManager.IsInRoleAsync(user, "Admin"))
                         await _userManager.RemoveFromRoleAsync(user, "Admin");
+                    if(currentUserEmail == user.Email)
+                    {
+                        await _signInManager.SignOutAsync();
+                    }
+                    await _userManager.UpdateSecurityStampAsync(user);
+                    
                     break;
             }
         }
