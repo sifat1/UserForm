@@ -12,33 +12,34 @@
 @section Scripts {
     <script src="~/js/questionadd.js" asp-append-version="true"></script>
     <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const tagInput = document.getElementById("tag-input");
-        if (tagInput) {
-            tagInput.addEventListener("keydown", function(e) {
-                if (e.key === "Enter" || e.key === ",") {
-                    e.preventDefault();
-                    const value = e.target.value.trim().replace(",", "");
-                    if (value && !formBuilder.tags.includes(value)) {
-                        formBuilder.tags.push(value);
-                        e.target.value = '';
-                        formBuilder.updateTagUI();
+        document.addEventListener("DOMContentLoaded", function() {
+            const tagInput = document.getElementById("tag-input");
+            if (tagInput) {
+                tagInput.addEventListener("keydown", function(e) {
+                    if (e.key === "Enter" || e.key === ",") {
+                        e.preventDefault();
+                        const value = e.target.value.trim().replace(",", "");
+                        if (value && !formBuilder.tags.includes(value)) {
+                            formBuilder.tags.push(value);
+                            e.target.value = '';
+                            formBuilder.updateTagUI();
+                        }
                     }
-                }
+                });
+            }
+
+            document.getElementById("add-question")?.addEventListener("click", formBuilder.addQuestion);
+            document.getElementById("delete-selected")?.addEventListener("click", function() {
+                document.querySelectorAll(".delete-checkbox:checked").forEach(cb =>
+                    cb.closest(".question-block").remove()
+                );
             });
-        }
 
-        document.getElementById("add-question")?.addEventListener("click", formBuilder.addQuestion);
-        document.getElementById("delete-selected")?.addEventListener("click", function() {
-            document.querySelectorAll(".delete-checkbox:checked").forEach(cb =>
-                cb.closest(".question-block").remove()
-            );
+            formBuilder.setupQuestionTypeChangeHandler();
+
+            const modelQuestions = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Questions ?? []));
+            const initialTags = ("@Model.Tags" || "").split(',').map(t => t.trim()).filter(t => t.length > 0);
+            formBuilder.initializeForm(modelQuestions, initialTags);
         });
-
-        formBuilder.setupQuestionTypeChangeHandler();
-        const modelQuestions = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Questions));
-        const initialTags = "@Model.Tags".split(',').map(t => t.trim()).filter(t => t.length > 0);
-        formBuilder.initializeForm(modelQuestions, initialTags);
-    });
-</script>
+    </script>
 }

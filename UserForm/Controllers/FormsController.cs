@@ -153,7 +153,7 @@ public class FormsController(AppDbContext context) : Controller
         var form = await context.Forms
             .Include(f => f.Questions).ThenInclude(q => q.Options)
             .Include(f => f.Responses).ThenInclude(r => r.Answers)
-            .FirstOrDefaultAsync(f => f.Id == id && f.CreatedById == GetUserId() || User.IsInRole("Admin"));
+            .FirstOrDefaultAsync(f => f.Id == id && f.CreatedById == GetUserId());
 
         if (form == null) return NotFound();
 
