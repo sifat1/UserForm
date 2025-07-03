@@ -31,6 +31,7 @@ public class UserDatatoFormsController(AppDbContext context) : Controller
             FormId = form.Id,
             FormTitle = form.FormTitle,
             FormTopic = form.FormTopic,
+            Description = form.Description,
             Questions = form.Questions.Select(q => new QuestionViewModel
             {
                 QuestionId = q.Id,

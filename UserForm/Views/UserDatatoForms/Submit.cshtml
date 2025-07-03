@@ -9,7 +9,7 @@
 
 <h5>@Model.FormTitle @( User.Identity.IsAuthenticated ? "" : " (Read Only Mode)")</h5>
 <p><strong>Topic:</strong> @Model.FormTopic</p>
-
+<p>@Model.Description</p>
 <form method="post" asp-action="Submit" asp-controller="UserDatatoForms">
     @Html.AntiForgeryToken()
     <input type="hidden" name="FormId" value="@Model.FormId"/>

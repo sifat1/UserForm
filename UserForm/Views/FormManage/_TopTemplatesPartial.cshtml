@@ -9,6 +9,12 @@
                         <div class="card-body">
                             <h5 class="card-title">@form.FormTitle</h5>
                             <p><strong>Topic:</strong> @form.FormTopic</p>
+                            <p>
+                                @(string.IsNullOrEmpty(form.Description)
+                                    ? ""
+                                    : form.Description.Substring(0, Math.Min((int)(form.Description.Length * 0.5), form.Description.Length))
+                                      + (form.Description.Length > (int)(form.Description.Length * 0.5) ? "..." : ""))
+                            </p>
 
                             <div class="d-flex align-items-center gap-2 mb-2">
                                 <form method="post" action="@Url.Action("Like", "FormManage")">

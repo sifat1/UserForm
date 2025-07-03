@@ -16,7 +16,7 @@
 
 <h5>Edit Submission: <span class="text-primary">@Model.FormTitle</span></h5>
 <p><strong>Topic:</strong> @Model.FormTopic</p>
-
+<p>@Model.Description</p>
 <form method="post" asp-action="EditSubmission" asp-controller="UserDatatoForms">
     @Html.AntiForgeryToken()
     <input type="hidden" name="FormId" value="@Model.FormId" />

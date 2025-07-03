@@ -52,11 +52,12 @@ public class FormManageController(AppDbContext context) : Controller
                 Id = f.Id,
                 FormTitle = f.FormTitle,
                 FormTopic = f.FormTopic,
+                Description = f.Description,
                 IsPublic = f.IsPublic,
                 LikeCount = context.Likes.Count(l => l.FormId == f.Id)
             }).ToListAsync();
 
-        // Topics and Tags
+        
         var allTopics = await context.Forms
             .Select(f => f.FormTopic)
             .Distinct()
