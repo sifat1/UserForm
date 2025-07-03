@@ -42,18 +42,7 @@ public class UserDatatoFormsController(AppDbContext context) : Controller
             Answers = form.Questions.Select(q => new AnswerInputModel
             {
                 QuestionId = q.Id
-            }).ToList(),
-            Comments = await context.Comments
-                .Where(c => c.FormId == id)
-                .Include(c => c.User)
-                .OrderByDescending(c => c.CreatedAt)
-                .Select(c => new CommentDisplayViewModel
-                {
-                    Email = c.User.Email,
-                    Content = c.Content,
-                    CreatedAt = c.CreatedAt
-                })
-                .ToListAsync()
+            }).ToList()
         };
     
         return View(model);

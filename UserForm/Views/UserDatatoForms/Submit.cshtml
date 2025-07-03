@@ -54,29 +54,3 @@
         @Html.Partial("_Warning",ViewData["ad"]= " to Submit")
     }
 </form>
-
-<div class="mt-5">
-    <h4>Comments</h4>
-@if (User.Identity.IsAuthenticated)
-    {
-        <form action="/UserDatatoForms/PostComment" method="post">
-            @Html.AntiForgeryToken()
-            <input type="hidden" name="FormId" value="@Model.FormId"/>
-            <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString"/>
-
-            <div class="mb-3">
-                <label asp-for="Content" class="form-label"></label>
-                <textarea name="Content" class="form-control" rows="3"></textarea>
-                <span asp-validation-for="Content" class="text-danger"></span>
-            </div>
-
-            <button type="submit" class="btn btn-secondary">Add Comment</button>
-        </form>
-    }
-    else
-    {
-        @Html.Partial("_Warning",ViewData["ad"]= " to Add Comment")
-    }
-
-    @Html.Partial("_CommentListPartial",Model.Comments)
-</div>

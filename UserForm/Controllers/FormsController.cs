@@ -8,6 +8,7 @@ using UserForm.Models.DBModels;
 using UserForm.Models.DBModels.Forms;
 using UserForm.Models.DBModels.Question;
 using UserForm.ViewModels.Analytics;
+using UserForm.ViewModels.usersubmitformdata;
 
 namespace UserForm.Controllers;
 
@@ -171,7 +172,19 @@ public class FormsController(AppDbContext context) : Controller
     {
         var form = await GetFormWithDetailsAsync(id);
         if (form == null) return NotFound();
-
+        
+        ViewData["Comments"] = await context.Comments
+            .Where(c => c.FormId == id)
+            .Include(c => c.User)
+            .OrderByDescending(c => c.CreatedAt)
+            .Select(c => new CommentDisplayViewModel
+            {
+                Email = c.User.Email,
+                Content = c.Content,
+                CreatedAt = c.CreatedAt
+            })
+            .ToListAsync();
+        
         return View(MapEntityToDto(form));
     }
 
