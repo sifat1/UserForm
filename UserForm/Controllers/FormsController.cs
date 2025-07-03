@@ -130,7 +130,18 @@ public class FormsController(AppDbContext context) : Controller
     [HttpPost]
     public async Task<IActionResult> Edit(CreateFormDto dto)
     {
-        if (!ModelState.IsValid) return View(dto);
+        if (HasTooManyOfSameQuestionType(dto.Questions, out var errorMessage))
+        {
+            TempData["ErrorMessage"] = errorMessage;
+            dto.Topics = GetTopics();
+            return View(dto);
+        }
+
+        if (!ModelState.IsValid)
+        {
+            dto.Topics = GetTopics();
+            return View(dto);
+        }
 
         var form = await GetFormWithDetailsAsync(dto.Id ?? 0);
         if (form != null && (User.IsInRole("Admin") || UserOwnsForm(form)))
@@ -147,11 +158,13 @@ public class FormsController(AppDbContext context) : Controller
             form.Questions = MapDtoToEntity(dto).Questions;
 
             await context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Form edited successfully!";
             return RedirectToAction("Edit", new { id = form.Id });
         }
 
         return Unauthorized();
     }
+
 
     [HttpGet]
     public async Task<IActionResult> CreateFromTemplate(int id)
