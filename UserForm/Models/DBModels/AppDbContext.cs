@@ -10,7 +10,6 @@ namespace UserForm.Models.DBModels;
 public class AppDbContext : IdentityDbContext<UserDetails, IdentityRole, string>
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
-    
     public DbSet<TopicEntity> Topics { get; set; }
     public DbSet<FormEntity> Forms { get; set; }
     public DbSet<LikeEntity> Likes { get; set; }
@@ -24,13 +23,16 @@ public class AppDbContext : IdentityDbContext<UserDetails, IdentityRole, string>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        
+
+        modelBuilder.Entity<UserDetails>()
+            .HasIndex(u => u.Email)
+            .IsUnique();
         
         modelBuilder.Entity<FormEntity>()
             .HasGeneratedTsVectorColumn(
                 f => f.FormSearchVector,
                 "english", 
-                f => new { f.Description, f.FormTitle, f.Tags } 
+                f => new { f.Description } 
             )
             .HasIndex(f => f.FormSearchVector)
             .HasMethod("GIN");
@@ -50,6 +52,9 @@ public class AppDbContext : IdentityDbContext<UserDetails, IdentityRole, string>
             .WithOne(q => q.Form)
             .HasForeignKey(q => q.FormId) 
             .OnDelete(DeleteBehavior.Cascade);
+        
+        modelBuilder.Entity<FormEntity>()
+            .HasIndex(f => f.FormTopic);
         
         modelBuilder.Entity<QuestionEntity>()
             .HasMany(q => q.Options)

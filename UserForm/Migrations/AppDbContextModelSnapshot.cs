@@ -216,7 +216,7 @@ namespace UserForm.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("tsvector")
                         .HasAnnotation("Npgsql:TsVectorConfig", "english")
-                        .HasAnnotation("Npgsql:TsVectorProperties", new[] { "Description", "FormTitle", "Tags" });
+                        .HasAnnotation("Npgsql:TsVectorProperties", new[] { "Description" });
 
                     b.Property<string>("FormTitle")
                         .IsRequired()
@@ -240,6 +240,8 @@ namespace UserForm.Migrations
                     b.HasIndex("FormSearchVector");
 
                     NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("FormSearchVector"), "GIN");
+
+                    b.HasIndex("FormTopic");
 
                     b.ToTable("Forms");
                 });
@@ -453,6 +455,9 @@ namespace UserForm.Migrations
                         .HasColumnType("character varying(256)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
 
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");

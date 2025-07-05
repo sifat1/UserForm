@@ -14,100 +14,112 @@ namespace UserForm.Controllers;
 public class FormManageController(AppDbContext context) : Controller
 {
 
-    [HttpGet("/")]
-    public async Task<IActionResult> List(string? topic, string? tag, string? searchQuery, int page = 1, int pageSize = 6)
+   [HttpGet("/")]
+public async Task<IActionResult> List(string? topic, string? tag, string? searchQuery, int page = 1, int pageSize = 6)
+{
+    var topTemplates = await GetTopTemplatesAsync();
+    ViewData["TopTemplates"] = topTemplates;
+
+    var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    IQueryable<FormEntity> query = context.Forms;
+
+    
+    if (!string.IsNullOrEmpty(topic))
+        query = query.Where(f => f.FormTopic == topic);
+
+    
+    if (!string.IsNullOrEmpty(tag))
+        query = query.Where(f => f.Tags.Contains(tag) || 
+                               f.Tags.StartsWith(tag + ",") || 
+                               f.Tags.EndsWith("," + tag) || 
+                               f.Tags.Contains("," + tag + ","));
+
+    
+    if (!string.IsNullOrEmpty(searchQuery))
     {
-        var topTemplates = await GetTopTemplatesAsync();
-        ViewData["TopTemplates"] = topTemplates;
-
-        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var query = context.Forms.AsQueryable();
-        if (!string.IsNullOrEmpty(topic))
-            query = query.Where(f => f.FormTopic == topic);
-
-        if (!string.IsNullOrEmpty(tag))
-            query = query.Where(f => f.Tags.Contains(tag));
-        
-        if (!string.IsNullOrEmpty(searchQuery))
-        {
-            var formIds = await context.Database
-                .SqlQuery<int>($"""
-                                WITH ranked_forms AS (
+        var formIds = await context.Database
+            .SqlQuery<int>($"""
+                                WITH search_results AS (
                                     SELECT 
                                         f."Id",
-                                        ts_rank(f."FormSearchVector", plainto_tsquery('english', {searchQuery})) +
+                                        ts_rank(f."FormSearchVector", plainto_tsquery('english', {searchQuery})) AS form_rank,
                                         COALESCE((
                                             SELECT SUM(ts_rank(c."CommentSearchVector", plainto_tsquery('english', {searchQuery})))
                                             FROM "Comments" c
                                             WHERE c."FormId" = f."Id"
-                                        ), 0) AS total_rank
+                                        ), 0) AS comment_rank
                                     FROM "Forms" f
                                     WHERE 
-                                        f."FormSearchVector" @@ plainto_tsquery('english', {searchQuery}) OR
-                                        EXISTS (
-                                            SELECT 1 FROM "Comments" c
-                                            WHERE c."FormId" = f."Id" AND
-                                            c."CommentSearchVector" @@ plainto_tsquery('english', {searchQuery})
+                                        f."FormSearchVector" @@ plainto_tsquery('english', {searchQuery})
+                                        OR EXISTS (
+                                            SELECT 1 
+                                            FROM "Comments" c 
+                                            WHERE c."FormId" = f."Id" 
+                                            AND c."CommentSearchVector" @@ plainto_tsquery('english', {searchQuery})
                                         )
-                                    ORDER BY total_rank DESC
                                 )
-                                SELECT "Id" FROM ranked_forms
-                                """)
-                .ToListAsync();
+                                SELECT "Id"
+                                FROM search_results
+                                ORDER BY (form_rank + comment_rank) DESC
+                            """).ToListAsync();
 
-            query = query.Where(f => formIds.Contains(f.Id));
-        }
-        int totalCount = await query.CountAsync();
-        int totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
-        
-        var forms = await query
-            .OrderByDescending(f => f.Id)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .Select(f => new FormCardViewModel
-            {
-                Id = f.Id,
-                FormTitle = f.FormTitle,
-                FormTopic = f.FormTopic,
-                Description = f.Description,
-                IsPublic = f.IsPublic,
-                LikeCount = context.Likes.Count(l => l.FormId == f.Id)
-            }).ToListAsync();
-
-        
-        var allTopics = await context.Forms
-            .Select(f => f.FormTopic)
-            .Distinct()
-            .ToListAsync();
-
-        var allTagStrings = await context.Forms
-            .Select(f => f.Tags)
-            .ToListAsync();
-
-        var allTags = allTagStrings
-            .Where(t => !string.IsNullOrWhiteSpace(t))
-            .SelectMany(t => t.Split(',', StringSplitOptions.RemoveEmptyEntries))
-            .Select(t => t.Trim())
-            .Distinct()
-            .OrderBy(t => t)
-            .ToList();
-
-        
-        var vm = new PaginatedFormListViewModel
-        {
-            Forms = forms,
-            CurrentPage = page,
-            TotalPages = totalPages,
-            CurrentUserId = currentUserId,
-            SelectedTopic = topic,
-            SelectedTag = tag,
-            SearchQuery = searchQuery,
-            AvailableTopics = allTopics,
-            AvailableTags = allTags
-        };
-
-        return View(vm);
+        query = query.Where(f => formIds.Contains(f.Id));
     }
+
+    
+    int totalCount = await query.CountAsync();
+    int totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+    
+    var forms = await query
+        .OrderByDescending(f => f.Id)
+        .Skip((page - 1) * pageSize)
+        .Take(pageSize)
+        .Select(f => new FormCardViewModel
+        {
+            Id = f.Id,
+            FormTitle = f.FormTitle,
+            FormTopic = f.FormTopic,
+            Description = f.Description,
+            IsPublic = f.IsPublic,
+            LikeCount = context.Likes.Count(l => l.FormId == f.Id)
+        })
+        .ToListAsync();
+
+    
+    var allTopics = await context.Forms
+        .Select(f => f.FormTopic)
+        .Distinct()
+        .ToListAsync();
+
+    
+    var allTagStrings = await context.Forms
+        .Where(f => !string.IsNullOrEmpty(f.Tags))
+        .Select(f => f.Tags)
+        .ToListAsync();
+
+    var allTags = allTagStrings
+        .SelectMany(t => t.Split(',', StringSplitOptions.RemoveEmptyEntries))
+        .Select(t => t.Trim())
+        .Distinct()
+        .OrderBy(t => t)
+        .ToList();
+
+    var vm = new PaginatedFormListViewModel
+    {
+        Forms = forms,
+        CurrentPage = page,
+        TotalPages = totalPages,
+        CurrentUserId = currentUserId,
+        SelectedTopic = topic,
+        SelectedTag = tag,
+        SearchQuery = searchQuery,
+        AvailableTopics = allTopics,
+        AvailableTags = allTags
+    };
+
+    return View(vm);
+}
 
     [HttpPost]
     [Authorize]
