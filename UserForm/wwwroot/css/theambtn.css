@@ -1,0 +1,10 @@
+.language-switcher {
+    margin-left: 15px;
+}
+.language-switcher select {
+    padding: 5px;
+    border-radius: 4px;
+    border: 1px solid #6c757d;
+    background-color: #343a40;
+    color: white;
+}
