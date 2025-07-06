@@ -53,6 +53,8 @@
 
     <div id="questions-container"></div>
 
+    @if (User.Identity.IsAuthenticated)
+    {
     <button type="button" class="btn btn-secondary mb-3" id="add-question">
         <i class="bi bi-plus-circle"></i> Add Question
     </button>
@@ -63,4 +65,9 @@
 
     <br />
     <button type="submit" class="btn btn-primary mt-2">Save Form</button>
+    }
+    else
+    {
+        @Html.Partial("_Warning", ViewData["ad"] = " to Add Questions")
+    }
 </form>

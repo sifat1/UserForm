@@ -12,7 +12,7 @@ using UserForm.ViewModels.usersubmitformdata;
 
 namespace UserForm.Controllers;
 
-[Authorize]
+
 public class FormsController(AppDbContext context) : Controller
 {
     private string GetUserId() => User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -82,6 +82,7 @@ public class FormsController(AppDbContext context) : Controller
         form.CreatedById == GetUserId();
 
     [HttpGet]
+    [Authorize]
     public IActionResult Create()
     {
         return View(new CreateFormDto
@@ -97,6 +98,7 @@ public class FormsController(AppDbContext context) : Controller
 
     
     [HttpPost]
+    [Authorize]
     public async Task<IActionResult> Create(CreateFormDto dto)
     {
         if (HasTooManyOfSameQuestionType(dto.Questions, out var errorMessage))
@@ -120,6 +122,7 @@ public class FormsController(AppDbContext context) : Controller
 
 
     [HttpGet]
+    [Authorize]
     public async Task<IActionResult> Edit(int id)
     {
         var form = await GetFormWithDetailsAsync(id);
@@ -129,6 +132,7 @@ public class FormsController(AppDbContext context) : Controller
     }
 
     [HttpPost]
+    [Authorize]
     public async Task<IActionResult> Edit(CreateFormDto dto)
     {
         if (HasTooManyOfSameQuestionType(dto.Questions, out var errorMessage))
@@ -189,6 +193,7 @@ public class FormsController(AppDbContext context) : Controller
     }
 
     [HttpPost]
+    [Authorize]
     public async Task<IActionResult> CreateFromTemplate(CreateFormDto dto)
     {
         if (!ModelState.IsValid) return View(dto);
@@ -202,6 +207,7 @@ public class FormsController(AppDbContext context) : Controller
     }
 
     [HttpGet]
+    [Authorize]
     public async Task<IActionResult> Analytics(int id)
     {
         var form = await context.Forms

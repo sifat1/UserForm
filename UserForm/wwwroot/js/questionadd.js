@@ -2,7 +2,6 @@
 let questionIndex = 0;
 let tags = [];
 
-
 function createQuestionBlock(index) {
     return `
         <div class="question-block mb-4 p-3 border rounded" data-index="${index}">
@@ -87,6 +86,7 @@ function removeTag(index) {
 
 function setupQuestionTypeChangeHandler() {
     document.addEventListener("change", function (e) {
+        
         if (e.target.classList.contains("question-type")) {
             const index = e.target.getAttribute("data-index");
             const type = e.target.value;
@@ -135,6 +135,7 @@ function initializeForm(questions, initialTags) {
     tags = initialTags;
     updateTagUI();
 }
+
 window.formBuilder = {
     questionIndex,
     tags,

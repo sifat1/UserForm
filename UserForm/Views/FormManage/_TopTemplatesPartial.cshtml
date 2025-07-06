@@ -47,18 +47,20 @@
                                 </button>
                             </form>
 
-                            @if (form.IsPublic && User.Identity.IsAuthenticated)
+                            @if (form.IsPublic)
                             {
                                 <a class="btn btn-outline-primary btn-sm"
                                    href="@Url.Action("CreateFromTemplate", "Forms", new { id = form.Id })">
                                     <i class="bi bi-files"></i> Use as Template
                                 </a>
                             }
-
+                            @if (User.Identity.IsAuthenticated)
+                            {
                             <a class="btn btn-outline-success btn-sm"
                                href="@Url.Action("Submit", "UserDatatoForms", new { id = form.Id })">
                                 <i class="bi bi-pencil-square"></i> Fill Form
                             </a>
+                            }
                         </div>
                     </div>
                 </div>

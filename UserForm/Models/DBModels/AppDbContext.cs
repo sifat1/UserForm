@@ -36,6 +36,15 @@ public class AppDbContext : IdentityDbContext<UserDetails, IdentityRole, string>
             )
             .HasIndex(f => f.FormSearchVector)
             .HasMethod("GIN");
+        
+        modelBuilder.Entity<FormEntity>()
+            .HasOne(f => f.CreatedBy)
+            .WithMany()
+            .HasForeignKey(f => f.CreatedById)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<FormEntity>()
+            .HasIndex(u => u.CreatedById);
 
         
         modelBuilder.Entity<CommentEntity>()

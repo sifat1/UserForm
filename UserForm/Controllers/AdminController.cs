@@ -15,6 +15,7 @@ public class AdminController : Controller
     public AdminController(UserManager<UserDetails> userManager,SignInManager<UserDetails> signInManager)
     {
         _userManager = userManager;
+        _signInManager = signInManager;
     }
 
     [HttpGet]
@@ -41,8 +42,7 @@ public class AdminController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> BulkAction(
-        [FromForm] List<string> SelectedUserIds,
+    public async Task<IActionResult> BulkAction([FromForm] List<string> SelectedUserIds,
         [FromForm] string actionType)
     {
         if (SelectedUserIds == null || !SelectedUserIds.Any())
@@ -50,11 +50,11 @@ public class AdminController : Controller
             TempData["ErrorMessage"] = "No users selected";
             return RedirectToAction("Admin");
         }
-        
+
         var currentUserEmail = User.Identity?.Name;
+
         foreach (var userId in SelectedUserIds)
         {
-            
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null) continue;
 
@@ -63,29 +63,43 @@ public class AdminController : Controller
                 case "block":
                     user.IsBlocked = true;
                     await _userManager.UpdateAsync(user);
-                    if(currentUserEmail == user.Email)
+                    if (currentUserEmail == user.Email)
                     {
                         await _signInManager.SignOutAsync();
                     }
                     await _userManager.UpdateSecurityStampAsync(user);
                     break;
+
                 case "unblock":
                     user.IsBlocked = false;
                     await _userManager.UpdateAsync(user);
                     break;
+
                 case "makeAdmin":
                     if (!await _userManager.IsInRoleAsync(user, "Admin"))
                         await _userManager.AddToRoleAsync(user, "Admin");
                     break;
+
                 case "removeAdmin":
                     if (await _userManager.IsInRoleAsync(user, "Admin"))
                         await _userManager.RemoveFromRoleAsync(user, "Admin");
-                    if(currentUserEmail == user.Email)
+                    if (currentUserEmail == user.Email)
                     {
                         await _signInManager.SignOutAsync();
                     }
                     await _userManager.UpdateSecurityStampAsync(user);
-                    
+                    break;
+
+                case "delete":
+                    if (currentUserEmail == user.Email)
+                    {
+                        await _signInManager.SignOutAsync();
+                    }
+                    var result = await _userManager.DeleteAsync(user);
+                    if (!result.Succeeded)
+                    {
+                        TempData["ErrorMessage"] = $"Failed to delete user {user.Email}";
+                    }
                     break;
             }
         }
@@ -93,4 +107,5 @@ public class AdminController : Controller
         TempData["SuccessMessage"] = "Bulk action completed successfully";
         return RedirectToAction("Admin");
     }
+
 }

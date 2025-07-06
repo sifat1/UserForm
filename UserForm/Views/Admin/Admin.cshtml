@@ -26,14 +26,14 @@
                 </td>
                 <td>    
                     @if (Model.Users[i].IsBlocked)
-                        {
-                            <span style="text-decoration: line-through;">@Model.Users[i].Email</span>
-                        }
-                        else
-                        {
-                            @Model.Users[i].Email
-                        }
-                    </td>
+                    {
+                        <span style="text-decoration: line-through;">@Model.Users[i].Email</span>
+                    }
+                    else
+                    {
+                        @Model.Users[i].Email
+                    }
+                </td>
                 <td>@(Model.Users[i].IsAdmin ? "Yes" : "No")</td>
                 <td>@(Model.Users[i].IsBlocked ? "Blocked" : "Active")</td>
             </tr>
@@ -46,6 +46,7 @@
         <button type="submit" name="actionType" value="unblock" class="btn btn-success">Unblock Selected</button>
         <button type="submit" name="actionType" value="makeAdmin" class="btn btn-primary">Make Admin</button>
         <button type="submit" name="actionType" value="removeAdmin" class="btn btn-outline-danger">Remove Admin</button>
+        <button type="submit" name="actionType" value="delete" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete the selected users? This action cannot be undone.');">Delete Selected</button>
     </div>
 </form>
 

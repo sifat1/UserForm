@@ -543,7 +543,8 @@ namespace UserForm.Migrations
                 {
                     b.HasOne("UserForm.Models.DBModels.Users.UserDetails", "CreatedBy")
                         .WithMany()
-                        .HasForeignKey("CreatedById");
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("CreatedBy");
                 });
