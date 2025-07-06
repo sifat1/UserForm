@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ReflectionIT.Mvc.Paging;
 using UserForm.Models.DBModels;
-using UserForm.Models.DBModels.Forms;
 using UserForm.ViewModels.FormManage;
 using UserForm.ViewModels.usersubmitformdata;
 
@@ -13,6 +12,8 @@ namespace UserForm.Controllers;
 [Authorize]
 public class MyDashboardController(AppDbContext context) : Controller
 {
+    private string GetUserId() => User.FindFirstValue(ClaimTypes.NameIdentifier);
+    
     [HttpGet]
     public async Task<IActionResult> MyForms(int page = 1)
     {
@@ -51,7 +52,7 @@ public class MyDashboardController(AppDbContext context) : Controller
             Console.WriteLine($" - {id}");
 
         var formsToDelete = await context.Forms
-            .Where(f => selectedFormIds.Contains(f.Id) && f.CreatedById == userId)
+            .Where(f => selectedFormIds.Contains(f.Id) && f.CreatedById == userId || User.IsInRole("Admin"))
             .ToListAsync();
 
         if (formsToDelete.Any())
@@ -75,29 +76,34 @@ public class MyDashboardController(AppDbContext context) : Controller
     {
         var form = await context.Forms.FindAsync(formId);
         if (form == null) return NotFound();
+        if (form.CreatedById == GetUserId() || User.IsInRole("Admin"))
+        {
+            var questions = await context.Questions
+                .Where(q => q.FormId == formId)
+                .Include(q => q.Options)
+                .ToListAsync();
 
-        var questions = await context.Questions
-            .Where(q => q.FormId == formId)
-            .Include(q => q.Options)
-            .ToListAsync();
+            var query = context.FormResponses
+                .Where(r => r.FormId == formId)
+                .Include(r => r.Answers)
+                .Include(r => r.SubmittedBy)
+                .OrderByDescending(r => r.SubmittedAt);
 
-        var query = context.FormResponses
-            .Where(r => r.FormId == formId)
-            .Include(r => r.Answers)
-            .Include(r => r.SubmittedBy)
-            .OrderByDescending(r => r.SubmittedAt);
+            var model = await PagingList.CreateAsync(query, 5, page);
 
-        var model = await PagingList.CreateAsync(query, 5, page);
+            model.RouteValue = new RouteValueDictionary
+            {
+                { "formId", formId }
+            };
 
-        model.RouteValue = new RouteValueDictionary {
-            { "formId", formId }
-        };
+            ViewBag.Questions = questions;
+            ViewBag.FormTitle = form.FormTitle;
+            ViewBag.FormId = formId;
 
-        ViewBag.Questions = questions;
-        ViewBag.FormTitle = form.FormTitle;
-        ViewBag.FormId = formId;
+            return View(model);
+        }
 
-        return View(model);
+        return Unauthorized();
     }
 
 
@@ -114,7 +120,9 @@ public class MyDashboardController(AppDbContext context) : Controller
 
         if (response == null)
             return NotFound();
-
+        
+        if (response.Form.CreatedById == GetUserId() || User.IsInRole("Admin"))
+        {
         var vm = new SubmitFormViewModel
         {
             FormId = response.FormId,
@@ -136,13 +144,16 @@ public class MyDashboardController(AppDbContext context) : Controller
                 return new AnswerInputModel
                 {
                     QuestionId = q.Id,
-                    TextAnswer = a?.AnswerText // used for all question types
+                    TextAnswer = a?.AnswerText 
                 };
             }).ToList()
 
         };
 
         return View("EditSubmission", vm);
+        }
+
+        return Unauthorized();
     }
 
     [HttpPost]
