@@ -14,10 +14,23 @@ namespace UserForm.Controllers;
 public class UserDatatoFormsController(AppDbContext context) : Controller
 {
     private string GetUserId() => User.FindFirstValue(ClaimTypes.NameIdentifier);
-    
+
+    private bool IfHasResponse(int formId, string userid)
+    {
+        return context.FormResponses.Where(fr =>
+            fr.FormId == formId && fr.SubmittedById == userid).Any();
+    }
+
     [HttpGet]
     public async Task<IActionResult> Submit(int id)
     {
+        if (IfHasResponse(id, GetUserId()))
+        {
+            var response = context.FormResponses
+                .FirstOrDefault(fr => fr.FormId == id && fr.SubmittedById == GetUserId());
+            return RedirectToAction("EditSubmission", "MyDashboard", new { responseId = response.Id});
+        }
+        
         var form = await context.Forms
             .Include(f => f.Questions)
             .ThenInclude(q => q.Options)
@@ -59,7 +72,7 @@ public class UserDatatoFormsController(AppDbContext context) : Controller
             return BadRequest(ModelState); 
         }
 
-        var userid = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userid = GetUserId();
 
         var form = await context.Forms
             .Include(f => f.Questions)
@@ -67,9 +80,8 @@ public class UserDatatoFormsController(AppDbContext context) : Controller
 
         if (form == null)
             return NotFound();
-        
-        var isduplicate = context.FormResponses.Where(fr => 
-            fr.FormId == form.Id && fr.SubmittedById == userid).Any();
+
+        var isduplicate = IfHasResponse(form.Id, userid);
         
         if(isduplicate) return BadRequest();
         

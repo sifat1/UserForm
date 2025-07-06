@@ -121,7 +121,7 @@ public class MyDashboardController(AppDbContext context) : Controller
         if (response == null)
             return NotFound();
         
-        if (response.Form.CreatedById == GetUserId() || User.IsInRole("Admin"))
+        if (response.Form.CreatedById == GetUserId()|| response.SubmittedById == GetUserId() || User.IsInRole("Admin"))
         {
         var vm = new SubmitFormViewModel
         {
@@ -162,10 +162,11 @@ public class MyDashboardController(AppDbContext context) : Controller
     {
         var response = await context.FormResponses
             .Include(r => r.Answers)
-            .FirstOrDefaultAsync(r => r.FormId == vm.FormId && r.Id == vm.ResponseId); // or pass responseId as hidden field
+            .FirstOrDefaultAsync(r => r.FormId == vm.FormId && r.Id == vm.ResponseId); 
 
         if (response == null) return NotFound();
-
+        if (response.Form.CreatedById == GetUserId()|| response.SubmittedById == GetUserId() || User.IsInRole("Admin"))
+        {
         foreach (var answer in vm.Answers)
         {
             var existingAnswer = response.Answers.FirstOrDefault(a => a.QuestionId == answer.QuestionId);
@@ -178,6 +179,9 @@ public class MyDashboardController(AppDbContext context) : Controller
         await context.SaveChangesAsync();
         TempData["SuccessMessage"] = "Submission updated successfully!";
         return RedirectToAction("EditSubmission", new { responseId = vm.ResponseId });
+        }
+
+        return Unauthorized();
     }
 
 }
