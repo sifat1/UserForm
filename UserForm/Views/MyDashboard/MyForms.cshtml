@@ -53,18 +53,28 @@
                         </span>
                     </td>
                     <td>
-                        <a href="@Url.Action("Details", "MyDashboard", new { id = form.Id })" 
-                           class="btn btn-sm btn-outline-info me-1">
-                            View Details
-                        </a>
-                        <a href="@Url.Action("FormSubmissions", "MyDashboard", new { formId = form.Id })"
-                           class="btn btn-sm btn-outline-primary">
-                            View Submissions
-                        </a>
-                        <a href="@Url.Action("ManageFormAccess", "MyDashboard", new { formId = form.Id })"
-                           class="btn btn-sm btn-outline-primary">
-                            Manage Form Access
-                        </a>
+                        <div class="dropdown d-inline">
+                            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-three-dots-vertical"></i>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a class="dropdown-item" href="@Url.Action("Details", "MyDashboard", new { id = form.Id })">
+                                        View Details
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="@Url.Action("FormSubmissions", "MyDashboard", new { formId = form.Id })">
+                                        View Submissions
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="@Url.Action("ManageFormAccess", "MyDashboard", new { formId = form.Id })">
+                                        Manage Form Access
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                     </td>
                 </tr>
             }
