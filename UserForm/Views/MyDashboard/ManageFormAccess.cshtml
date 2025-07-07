@@ -1,0 +1,52 @@
+@model UserForm.ViewModels.Mydashboard.FormAccessManageViewModel
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Manage Form Access";
+}
+
+<h4>Manage User Access to Form</h4>
+
+
+<form method="post" action="/MyDashboard/ShareForm" class="mb-4">
+    <div class="input-group">
+        <input type="hidden" name="formId" value="@Model.FormId"/>
+        <input type="email" name="email" class="form-control" placeholder="Enter user email to share access..." required/>
+        <button type="submit" class="btn btn-primary">Add</button>
+    </div>
+</form>
+
+
+<form method="post" action="/MyDashboard/RemoveSharedUsers">
+    <input type="hidden" name="formId" value="@Model.FormId"/>
+    <table class="table table-bordered">
+        <thead>
+        <tr>
+            <th><input type="checkbox" id="selectAll"/></th>
+            <th>Email</th>
+        </tr>
+        </thead>
+        <tbody>
+        @for (int i = 0; i < Model.AccessUserEmails.Count; i++)
+        {
+            <tr>
+                <td>
+                    <input type="checkbox" name="selectedEmails" value="@Model.AccessUserEmails[i]" class="user-checkbox"/>
+                </td>
+                <td>@Model.AccessUserEmails[i]</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+
+    <button type="submit" class="btn btn-danger" onclick="return confirm('Remove selected users from access?')">Remove Selected</button>
+</form>
+
+@section Scripts {
+    <script>
+        document.getElementById("selectAll")?.addEventListener("change", function () {
+            const checkboxes = document.querySelectorAll(".user-checkbox");
+            checkboxes.forEach(cb => cb.checked = this.checked);
+        });
+    </script>
+}

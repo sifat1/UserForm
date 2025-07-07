@@ -1,16 +1,20 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ReflectionIT.Mvc.Paging;
 using UserForm.Models.DBModels;
+using UserForm.Models.DBModels.Forms;
+using UserForm.Models.DBModels.Users;
 using UserForm.ViewModels.FormManage;
+using UserForm.ViewModels.Mydashboard;
 using UserForm.ViewModels.usersubmitformdata;
 
 namespace UserForm.Controllers;
 
 [Authorize]
-public class MyDashboardController(AppDbContext context) : Controller
+public class MyDashboardController(AppDbContext context,UserManager<UserDetails> _userManager) : Controller
 {
     private string GetUserId() => User.FindFirstValue(ClaimTypes.NameIdentifier);
     
@@ -182,6 +186,69 @@ public class MyDashboardController(AppDbContext context) : Controller
         }
 
         return Unauthorized();
+    }
+    
+    [HttpGet]
+    public async Task<IActionResult> ManageFormAccess(int formId)
+    {
+        var form = await context.Forms
+            .Include(f => f.SharedWithUsers)
+            .ThenInclude(fa => fa.User)
+            .FirstOrDefaultAsync(f => f.Id == formId);
+
+        var model = new FormAccessManageViewModel
+        {
+            FormId = formId,
+            AccessUserEmails = form.SharedWithUsers.Select(u => u.User.Email).ToList()
+        };
+
+        return View(model);
+    }
+    
+    [HttpPost]
+    public async Task<IActionResult> ShareForm(int formId, string email)
+    {
+        var user = await _userManager.FindByEmailAsync(email);
+        if (user == null)
+        {
+            TempData["ErrorMessage"] = "User not found.";
+            return RedirectToAction("ManageFormAccess", new { formId });
+        }
+
+        var exists = await context.FormAccess
+            .AnyAsync(fa => fa.FormId == formId && fa.UserId == user.Id);
+
+        if (!exists)
+        {
+            context.FormAccess.Add(new FormAccess { FormId = formId, UserId = user.Id });
+            await context.SaveChangesAsync();
+        }
+
+        return RedirectToAction("ManageFormAccess", new { formId });
+    }
+    
+    [HttpPost]
+    public async Task<IActionResult> RemoveSharedUsers(int formId, List<string> selectedEmails)
+    {
+        if (selectedEmails == null || !selectedEmails.Any())
+        {
+            TempData["ErrorMessage"] = "No users selected for removal.";
+            return RedirectToAction("ManageFormAccess", new { formId });
+        }
+
+        var users = await _userManager.Users
+            .Where(u => selectedEmails.Contains(u.Email))
+            .ToListAsync();
+
+        var accessEntries = await context.FormAccess
+            .Where(fa => fa.FormId == formId && users.Select(u => u.Id).Contains(fa.UserId))
+            .ToListAsync();
+
+        context.FormAccess.RemoveRange(accessEntries);
+        await context.SaveChangesAsync();
+
+        TempData["SuccessMessage"] = "Selected users removed from access.";
+        return RedirectToAction("ManageFormAccess", new { formId });
     }
 
 }

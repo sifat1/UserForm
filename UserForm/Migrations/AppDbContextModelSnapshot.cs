@@ -197,6 +197,30 @@ namespace UserForm.Migrations
                     b.ToTable("Comments");
                 });
 
+            modelBuilder.Entity("UserForm.Models.DBModels.Forms.FormAccess", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("FormId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FormId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("FormAccess");
+                });
+
             modelBuilder.Entity("UserForm.Models.DBModels.Forms.FormEntity", b =>
                 {
                     b.Property<int>("Id")
@@ -539,6 +563,25 @@ namespace UserForm.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("UserForm.Models.DBModels.Forms.FormAccess", b =>
+                {
+                    b.HasOne("UserForm.Models.DBModels.Forms.FormEntity", "Form")
+                        .WithMany("SharedWithUsers")
+                        .HasForeignKey("FormId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("UserForm.Models.DBModels.Users.UserDetails", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Form");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("UserForm.Models.DBModels.Forms.FormEntity", b =>
                 {
                     b.HasOne("UserForm.Models.DBModels.Users.UserDetails", "CreatedBy")
@@ -635,6 +678,8 @@ namespace UserForm.Migrations
                     b.Navigation("Questions");
 
                     b.Navigation("Responses");
+
+                    b.Navigation("SharedWithUsers");
                 });
 
             modelBuilder.Entity("UserForm.Models.DBModels.Forms.FormResponse", b =>

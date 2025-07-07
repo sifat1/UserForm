@@ -18,7 +18,7 @@ public class AppDbContext : IdentityDbContext<UserDetails, IdentityRole, string>
     public DbSet<OptionEntity> Options { get; set; }
     public DbSet<FormResponse> FormResponses { get; set; }
     public DbSet<AnswerEntity> Answers { get; set; } 
-    
+    public DbSet<FormAccess> FormAccess  { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -45,7 +45,8 @@ public class AccountController : Controller
         {
             Email = model.Email,
             IsBlocked = false,
-            UserName = model.Name,
+            UserName = model.Email,
+            FullName = model.Name,
             LastLogin = DateTime.UtcNow,
         };
 
