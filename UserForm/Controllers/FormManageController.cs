@@ -117,7 +117,7 @@ public class FormManageController(AppDbContext context) : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Like(int formId, string? returnUrl)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = GetUserId();
         if (userId == null) return Unauthorized();
 
         var alreadyLiked = await context.Likes.AnyAsync(l => l.FormId == formId && l.UserId == userId);

@@ -24,13 +24,13 @@
     <div class="mb-4">
         <span class="fw-bold me-2">Filter by Tag:</span>
         <a class="badge bg-secondary text-decoration-none me-1 @(string.IsNullOrEmpty(Model.SelectedTag) ? "bg-primary" : "")"
-           href="@Url.Action("List", new { topic = Model.SelectedTopic, search = Model.SearchQuery })">
+           href="@Url.Action("List", new { search = Model.SearchQuery })">
             All
         </a>
         @foreach (var tag in Model.AvailableTags)
         {
             <a class="badge text-bg-light text-decoration-none me-1 @(tag == Model.SelectedTag ? "bg-primary text-white" : "")"
-               href="@Url.Action("List", new { tag = tag, topic = Model.SelectedTopic, search = Model.SearchQuery })">
+               href="@Url.Action("List", new { tag = tag, search = Model.SearchQuery })">
                 @tag
             </a>
         }
@@ -51,7 +51,6 @@
                        href="@Url.Action("List", "FormManage", new
                        {
                            page = i,
-                           topic = Model.SelectedTopic,
                            tag = Model.SelectedTag,
                            search = Model.SearchQuery
                        })">
