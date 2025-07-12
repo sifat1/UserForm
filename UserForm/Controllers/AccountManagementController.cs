@@ -139,7 +139,13 @@ public class AccountController : Controller
             var token = await SalesforceHelper.GetAccessTokenAsync();
             var accountId = await SalesforceHelper.CreateAccountAsync(token, model);
             var contactId = await SalesforceHelper.CreateContactAsync(token, model, accountId);
-
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == model.UserId);
+            if (user != null)
+            {
+                user.SalesforceAccountId = accountId;
+                user.SalesforceContactId = contactId;
+                await _db.SaveChangesAsync();
+            }
             ViewBag.Message = "Salesforce Account and Contact created successfully.";
         }
         catch (Exception ex)
