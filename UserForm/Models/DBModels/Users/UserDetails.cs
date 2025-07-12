@@ -7,4 +7,6 @@ public class UserDetails : IdentityUser
     public string FullName { get; set; } = string.Empty;
     public DateTime LastLogin { get; set; } = DateTime.Now;
     public bool IsBlocked { get; set; } = false;
+    public string SalesforceAccountId { get; set; }
+    public string SalesforceContactId { get; set; }
 }
