@@ -1,8 +1,11 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using UserForm.Models.DBModels;
 using UserForm.Models.DBModels.Users;
+using UserForm.Services;
 using UserForm.ViewModels.Account;
 
 namespace UserForm.Controllers;
@@ -105,4 +108,47 @@ public class AccountController : Controller
         await _signInManager.SignOutAsync();
         return RedirectToAction("Login", "Account");
     }
+    
+    [Authorize]
+    public IActionResult CreateSalesforceAccount()
+    {
+        var model = new SalesforceAccountViewModel
+        {
+            Name = User.Identity.Name
+        };
+        return View(model);
+    }
+    
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize]
+    public async Task<IActionResult> CreateSalesforceAccount(SalesforceAccountViewModel model)
+    {
+        if (!ModelState.IsValid)
+            return View(model);
+
+        var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var isAdmin = User.IsInRole("Admin");
+        if (model.UserId != currentUserId && !isAdmin)
+        {
+            return Forbid();
+        }
+
+        try
+        {
+            var token = await SalesforceHelper.GetAccessTokenAsync();
+            var accountId = await SalesforceHelper.CreateAccountAsync(token, model);
+            var contactId = await SalesforceHelper.CreateContactAsync(token, model, accountId);
+
+            ViewBag.Message = "Salesforce Account and Contact created successfully.";
+        }
+        catch (Exception ex)
+        {
+            ModelState.AddModelError("", $"Error: {ex.Message}");
+        }
+
+        return View(model);
+    }
+
+
 }
