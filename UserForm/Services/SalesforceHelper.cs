@@ -11,14 +11,14 @@ public static class SalesforceHelper
 
     public static async Task<string> GetAccessTokenAsync()
     {
-        string passwordWithToken = "sk.147456369" + "1k9Y3bc2QHxQO6dVm3xTd78rC";
+        string passwordWithToken = Environment.GetEnvironmentVariable("pass") + Environment.GetEnvironmentVariable("token");
 
         var form = new Dictionary<string, string>
         {
             {"grant_type", "password"},
-            {"client_id", "3MVG9rZjd7MXFdLga4IvrmO5baucvYrJgsWMXaGfG9y.XjBdU_rgr5iyaSICa10hOnWIA2F7CwAFZLeusImu6"},
-            {"client_secret", "043DB510A2DC3389DD28F0D131884111585B7EDCE067FDB1F47ADCD1EDCDEABD"},
-            {"username", "sifatshikdhar956@agentforce.com"},
+            {"client_id", Environment.GetEnvironmentVariable("client_id")},
+            {"client_secret", Environment.GetEnvironmentVariable("client_secret")},
+            {"username", Environment.GetEnvironmentVariable("username")},
             {"password", passwordWithToken}
         };
 
