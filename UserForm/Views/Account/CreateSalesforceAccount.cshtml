@@ -3,9 +3,24 @@
     Layout = "_Layout";
     ViewData["Title"] = "Create Salesforce Account";
 }
-<h2>@ViewData["Title"]</h2>
+<h4>@ViewData["Title"]</h4>
 
-<form asp-action="CreateSalesforceAccount" method="post">
+@if (!ViewData.ModelState.IsValid)
+{
+    foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+    {
+        <div class="alert alert-danger">@error.ErrorMessage</div>
+    }
+}
+
+@if (ViewBag.Message != null)
+{
+    <div class="alert alert-success">@ViewBag.Message</div>
+}
+
+
+
+<form action="/Account/CreateSalesforceAccount" method="post">
     @Html.AntiForgeryToken()
     @Html.HiddenFor(m => m.UserId)
 

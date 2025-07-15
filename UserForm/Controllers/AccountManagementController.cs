@@ -15,6 +15,7 @@ public class AccountController : Controller
     private readonly SignInManager<UserDetails> _signInManager;
     private readonly AppDbContext _db;
     private readonly UserService _userservice;
+    private readonly ILogger<AccountController> _logger;
 
     public AccountController(UserManager<UserDetails> userManager,
     SignInManager<UserDetails> signInManager, UserService userservice, AppDbContext db,
@@ -24,6 +25,7 @@ public class AccountController : Controller
         _signInManager = signInManager;
         _userservice = userservice;
         _db = db;
+        _logger = logger;
     }
 
     [HttpGet]
@@ -114,12 +116,11 @@ public class AccountController : Controller
     {
         var model = new SalesforceAccountViewModel
         {
-            Name = User.Identity.Name
+            Name = User.Identity.Name,
+            UserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
         };
         return View(model);
     }
-    
-    
     
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -131,32 +132,42 @@ public class AccountController : Controller
 
         var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         var isAdmin = User.IsInRole("Admin");
+
         if (model.UserId != currentUserId && !isAdmin)
-        {
             return Forbid();
+
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == model.UserId);
+        if (user == null)
+        {
+            ModelState.AddModelError("", "User not found.");
+            return View(model);
+        }
+
+        if (!string.IsNullOrEmpty(user.SalesforceAccountId) || !string.IsNullOrEmpty(user.SalesforceContactId))
+        {
+            ModelState.AddModelError("", "Salesforce record already exists for this user.");
+            return View(model);
         }
 
         try
         {
-            var token = await SalesforceHelper.GetAccessTokenAsync();
-            var accountId = await SalesforceHelper.CreateAccountAsync(token, model);
-            var contactId = await SalesforceHelper.CreateContactAsync(token, model, accountId);
-            var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == model.UserId);
-            if (user != null)
-            {
-                user.SalesforceAccountId = accountId;
-                user.SalesforceContactId = contactId;
-                await _db.SaveChangesAsync();
-            }
-            ViewBag.Message = "Salesforce Account and Contact created successfully.";
+            var (token, instanceUrl) = await SalesforceHelper.GetAccessTokenAsync();
+            var accountId = await SalesforceHelper.CreateAccountAsync(token, instanceUrl, model);
+            var contactId = await SalesforceHelper.CreateContactAsync(token, instanceUrl, model, accountId);
+
+            user.SalesforceAccountId = accountId;
+            user.SalesforceContactId = contactId;
+            await _db.SaveChangesAsync();
+
+            TempData["Message"] = "Salesforce Account and Contact created successfully.";
+            return RedirectToAction("Profile", new { id = model.UserId });
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Salesforce sync failed for user {UserId}", model.UserId);
             ModelState.AddModelError("", $"Error: {ex.Message}");
         }
 
         return View(model);
     }
-
-
 }
