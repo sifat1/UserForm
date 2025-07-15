@@ -468,6 +468,12 @@ namespace UserForm.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("SalesforceAccountId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("SalesforceContactId")
+                        .HasColumnType("text");
+
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
 
