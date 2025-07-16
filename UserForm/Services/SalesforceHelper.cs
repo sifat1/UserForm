@@ -11,6 +11,11 @@ public static class SalesforceHelper
 
     public static async Task<(string accessToken, string instanceUrl)> GetAccessTokenAsync()
     {
+        Console.WriteLine("client_id: " + Environment.GetEnvironmentVariable("client_id"));
+        Console.WriteLine("client_secret: " + Environment.GetEnvironmentVariable("client_secret"));
+        Console.WriteLine("username: " + Environment.GetEnvironmentVariable("username"));
+        Console.WriteLine("password+token: " + Environment.GetEnvironmentVariable("pass") + Environment.GetEnvironmentVariable("token"));
+
         string passwordWithToken = Environment.GetEnvironmentVariable("pass") + Environment.GetEnvironmentVariable("token");
 
         var form = new Dictionary<string, string>
