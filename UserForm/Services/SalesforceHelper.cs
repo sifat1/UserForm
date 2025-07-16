@@ -15,22 +15,28 @@ public static class SalesforceHelper
 
         var form = new Dictionary<string, string>
         {
-            {"grant_type", "password"},
-            {"client_id", Environment.GetEnvironmentVariable("client_id")},
-            {"client_secret", Environment.GetEnvironmentVariable("client_secret")},
-            {"username", Environment.GetEnvironmentVariable("username")},
-            {"password", passwordWithToken}
+            { "grant_type", "password" },
+            { "client_id", Environment.GetEnvironmentVariable("client_id") },
+            { "client_secret", Environment.GetEnvironmentVariable("client_secret") },
+            { "username", Environment.GetEnvironmentVariable("username") },
+            { "password", passwordWithToken }
         };
 
         var response = await _httpClient.PostAsync("https://login.salesforce.com/services/oauth2/token", new FormUrlEncodedContent(form));
-        response.EnsureSuccessStatusCode();
+        var content = await response.Content.ReadAsStringAsync();
 
-        var result = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new Exception($"Salesforce token request failed: {response.StatusCode}\nDetails: {content}");
+        }
+
+        var result = JsonDocument.Parse(content);
         var accessToken = result.RootElement.GetProperty("access_token").GetString();
         var instanceUrl = result.RootElement.GetProperty("instance_url").GetString();
 
         return (accessToken!, instanceUrl!);
     }
+
 
 
     public static async Task<string> CreateAccountAsync(string token, string instanceUrl, SalesforceAccountViewModel model)
